@@ -5,6 +5,7 @@
 
 class IconProvider : public QFileIconProvider
 {
+
 public:
 
     IconProvider() : QFileIconProvider() {};

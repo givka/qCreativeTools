@@ -1,5 +1,6 @@
 #include "list_view.h"
 #include "icon_provider.h"
+#include "styled_item_delegate.h"
 #include <QDebug>
 
 ListView::ListView()
@@ -13,6 +14,20 @@ ListView::ListView()
     //model->setNameFilters(QStringList("*.png"));
 
     connect(this, &QAbstractItemView::doubleClicked, this, &ListView::navigateTo);
+}
+
+void ListView::init()
+{
+    setModel(model);
+    setViewMode(QListView::ViewMode::IconMode);
+    setResizeMode(QListView::ResizeMode::Adjust);
+    setIconSize(QSize(IconProvider::Size / 2, IconProvider::Size / 2));
+    setSpacing(11);
+    setMovement(QListView::Movement::Static);
+    setWordWrap(true);
+    setRootIndex(model->index(model->rootPath()));
+    setItemDelegate(new StyledItemDelegate);
+
 }
 
 void ListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
@@ -35,16 +50,4 @@ void ListView::navigateTo(const QModelIndex &index)
         setRootIndex(model->index(info.filePath()));
         emit updateTree(info.filePath());
     }
-}
-
-void ListView::init()
-{
-    setModel(model);
-    setViewMode(QListView::ViewMode::IconMode);
-    setResizeMode(QListView::ResizeMode::Adjust);
-    setIconSize(QSize(IconProvider::Size / 2, IconProvider::Size / 2));
-    setSpacing(11);
-    setMovement(QListView::Movement::Static);
-    setWordWrap(true);
-    setRootIndex(model->index(model->rootPath()));
 }
