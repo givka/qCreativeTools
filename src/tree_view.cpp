@@ -7,6 +7,15 @@ TreeView::TreeView()
 {
     model->setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
     model->setRootPath("C:/dev/qCreativeTools/resources/");
+
+    /* TODO: try to remove collapse icon for filtered dirs
+    connect(this, &QTreeView::expanded, this,
+            [](const QModelIndex &index) { qDebug() << "expanded" << index; });
+    connect(this, &QTreeView::collapsed, this,
+            [](const QModelIndex &index) { qDebug() << "collapsed" << index; });
+    */
+
+
 }
 
 void TreeView::init()
@@ -38,3 +47,4 @@ void TreeView::updateTree(const QString &filePath)
     expand(model->index(filePath));
     setCurrentIndex(model->index(filePath));
 }
+

@@ -20,9 +20,7 @@ public:
     ListView *getListView() { return listView; }
 
 private :
-    QFileSystemModel *model;
     ListView *listView;
-
     QCheckBox *videos;
     QCheckBox *photos;
     QSlider *sizeIconSlider;

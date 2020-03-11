@@ -21,7 +21,6 @@ public slots:
     void updateTree(const QString &filePath);
 
 private slots:
-
     void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 
 private :
