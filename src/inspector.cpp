@@ -11,61 +11,145 @@ Inspector::Inspector(QWidget *parent) :
         QWidget(parent),
         m_mediaPlayer(new QMediaPlayer)
 {
-    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Inspector::mediaStatusChanged);
+    lines = {
+            new InspectorLine("Camera make", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.Make.c_str());
+            }),
+            new InspectorLine("Camera model", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.Model.c_str());
+            }),
+            new InspectorLine("Software", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.Software.c_str());
+            }),
+            new InspectorLine("Bits per sample", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.BitsPerSample));
+            }),
+            new InspectorLine("Image width", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.ImageWidth));
+            }),
+            new InspectorLine("Image height", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.ImageHeight));
+            }),
+            new InspectorLine("Image description", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.ImageDescription.c_str());
+            }),
+            new InspectorLine("Image orientation", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.Orientation));
+            }),
+            new InspectorLine("Image copyright", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.Copyright.c_str());
+            }),
+            new InspectorLine("Image date/time", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.DateTime.c_str());
+            }),
+            new InspectorLine("Original date/time", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.DateTimeOriginal.c_str());
+            }),
+            new InspectorLine("Digitize date/time", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.DateTimeDigitized.c_str());
+            }),
+            new InspectorLine("Subsecond time", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.SubSecTimeOriginal.c_str());
+            }),
+            new InspectorLine("Exposure time", [](const easyexif::EXIFInfo &result) {
+                return QString(" 1/%1 s").arg(
+                        QString::number((unsigned) (1.0 / result.ExposureTime)));
+            }),
+            new InspectorLine("F-stop", [](const easyexif::EXIFInfo &result) {
+                return QString(" f/%1").arg(QString::number(result.FNumber, 'f', 1));
+            }),
+            new InspectorLine("Exposure program", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.ExposureProgram));
+            }),
+            new InspectorLine("ISO speed", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.ISOSpeedRatings));
+            }),
+            new InspectorLine("Subject distance", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 m").arg(QString::number(result.SubjectDistance, 'f', 1));
+            }),
+            new InspectorLine("Exposure bias", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 EV").arg(QString::number(result.ExposureBiasValue, 'f', 1));
+            }),
+            new InspectorLine("Flash used?", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.Flash));
+            }),
+            new InspectorLine("Flash returned light", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.FlashReturnedLight));
+            }),
+            new InspectorLine("Flash mode", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.FlashMode));
+            }),
+            new InspectorLine("Metering mode", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.MeteringMode));
+            }),
+            new InspectorLine("Lens focal length", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 mm").arg(QString::number(result.FocalLength, 'f', 1));
+            }),
+            new InspectorLine("35mm focal length", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 mm").arg(QString::number(result.FocalLengthIn35mm));
+            }),
+            new InspectorLine("GPS Latitude", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 deg (%2 deg, %3 min, %4 sec %5)").arg(
+                        QString::number(result.GeoLocation.Latitude, 'f', 1),
+                        QString::number(result.GeoLocation.LatComponents.degrees, 'f', 1),
+                        QString::number(result.GeoLocation.LatComponents.minutes, 'f', 1),
+                        QString::number(result.GeoLocation.LatComponents.seconds, 'f', 1),
+                        QString(result.GeoLocation.LatComponents.direction));
+            }),
+            new InspectorLine("GPS Longitude", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 deg (%2 deg, %3 min, %4 sec %5)").arg(
+                        QString::number(result.GeoLocation.Longitude, 'f', 1),
+                        QString::number(result.GeoLocation.LonComponents.degrees, 'f', 1),
+                        QString::number(result.GeoLocation.LonComponents.minutes, 'f', 1),
+                        QString::number(result.GeoLocation.LonComponents.seconds, 'f', 1),
+                        QString(result.GeoLocation.LonComponents.direction));
+            }),
+            new InspectorLine("GPS Altitude", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 m").arg(QString::number(result.GeoLocation.Altitude, 'f', 1));
+            }),
+            new InspectorLine("GPS Precision (DOP)", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(QString::number(result.GeoLocation.DOP, 'f', 1));
+            }),
+            new InspectorLine("Lens min focal length", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 mm").arg(
+                        QString::number(result.LensInfo.FocalLengthMin, 'f', 1));
+            }),
+            new InspectorLine("Lens max focal length", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1 mm").arg(
+                        QString::number(result.LensInfo.FocalLengthMax, 'f', 1));
+            }),
+            new InspectorLine("Lens f-stop min", [](const easyexif::EXIFInfo &result) {
+                return QString(" f/%1").arg(QString::number(result.LensInfo.FStopMin, 'f', 1));
+            }),
+            new InspectorLine("Lens f-stop max", [](const easyexif::EXIFInfo &result) {
+                return QString(" f/%1").arg(QString::number(result.LensInfo.FStopMax, 'f', 1));
+            }),
+            new InspectorLine("Lens make", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.LensInfo.Make.c_str());
+            }),
+            new InspectorLine("Lens model", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(result.LensInfo.Model.c_str());
+            }),
+            new InspectorLine("Focal plane XRes", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(
+                        QString::number(result.LensInfo.FocalPlaneXResolution, 'f', 1));
+            }),
+            new InspectorLine("Focal plane YRes", [](const easyexif::EXIFInfo &result) {
+                return QString(" %1").arg(
+                        QString::number(result.LensInfo.FocalPlaneYResolution, 'f', 1));
+            })
+    };
 
-    QVector<InspectorLine *> lines =
-            {
-                    new InspectorLine("Camera make:"),
-                    new InspectorLine("Camera model:"),
-                    new InspectorLine("Software:"),
-                    new InspectorLine("Bits per sample:"),
-                    new InspectorLine("Image width:"),
-                    new InspectorLine("Image height:"),
-                    new InspectorLine("Image description:"),
-                    new InspectorLine("Image orientation:"),
-                    new InspectorLine("Image copyright:"),
-                    new InspectorLine("Image date/time:"),
-                    new InspectorLine("Original date/time:"),
-                    new InspectorLine("Digitize date/time:"),
-                    new InspectorLine("Subsecond time:"),
-                    new InspectorLine("Exposure time:"),
-                    new InspectorLine("F-stop:"),
-                    new InspectorLine("Exposure program:"),
-                    new InspectorLine("ISO speed:"),
-                    new InspectorLine("Subject distance:"),
-                    new InspectorLine("Exposure bias:"),
-                    new InspectorLine("Flash used?:"),
-                    new InspectorLine("Flash returned light:"),
-                    new InspectorLine("Flash mode:"),
-                    new InspectorLine("Metering mode:"),
-                    new InspectorLine("Lens focal length:"),
-                    new InspectorLine("35mm focal length:"),
-                    new InspectorLine("GPS Latitude:"),
-                    new InspectorLine("GPS Longitude:"),
-                    new InspectorLine("GPS Altitude:"),
-                    new InspectorLine("GPS Precision (DOP):"),
-                    new InspectorLine("Lens min focal length:"),
-                    new InspectorLine("Lens max focal length:"),
-                    new InspectorLine("Lens f-stop min:"),
-                    new InspectorLine("Lens f-stop max:"),
-                    new InspectorLine("Lens make:"),
-                    new InspectorLine("Lens model:"),
-                    new InspectorLine("Focal plane XRes:"),
-                    new InspectorLine("Focal plane YRes:")
-            };
-
-    qDebug() << layout();
     auto widget = new QWidget;
     auto vLayout = new QVBoxLayout;
     auto vLayout2 = new QVBoxLayout;
+
     for (const auto &line : lines) {
         vLayout->addWidget(line);
-        /*
-        QFrame* l = new QFrame();
+        /*  QFrame* l = new QFrame();
         l->setFrameShape(QFrame::HLine);
         l->setFrameShadow(QFrame::Sunken);
-        vLayout->addWidget(l);
-        */
+        vLayout->addWidget(l); */
     }
     widget->setLayout(vLayout);
     vLayout->setSpacing(0);
@@ -73,28 +157,34 @@ Inspector::Inspector(QWidget *parent) :
     auto scrollArea = new QScrollArea();
     vLayout2->addWidget(scrollArea);
     scrollArea->setWidget(widget);
+    vLayout->setMargin(0);
+    scrollArea->setFrameShape(QFrame::Box);
+    scrollArea->setBackgroundRole(QPalette::Light);
 
     setLayout(vLayout2);
 }
 
+/* TODO: use this instead, but with the good format
+    auto image = QImage(path);
+    result.parseFrom(image.constBits(), image.sizeInBytes());
+*/
 void Inspector::setImage(const QString &path)
 {
-    qDebug() << "Inspector::setImage" << path;
-
-    m_mediaPlayer->setMedia(QUrl::fromLocalFile(path));
-
-    // Read the JPEG file into a buffer
     FILE *fp = fopen(path.toStdString().c_str(), "rb");
-    if (!fp) {
+    if (!fp){
         printf("Can't open file.\n");
+        return;
     }
+
     fseek(fp, 0, SEEK_END);
     unsigned long fsize = ftell(fp);
     rewind(fp);
     auto buf = new unsigned char[fsize];
+
     if (fread(buf, 1, fsize, fp) != fsize) {
         printf("Can't read file.\n");
         delete[] buf;
+        return;
     }
 
     fclose(fp);
@@ -102,85 +192,8 @@ void Inspector::setImage(const QString &path)
     easyexif::EXIFInfo result;
     result.parseFrom(buf, fsize);
 
-    /* TODO: use this instead, but with the good format
-    auto image = QImage(path);
-    result.parseFrom(image.constBits(), image.sizeInBytes());
-    */
-
-    // Dump EXIF information
-    printf("Camera make          : %s\n", result.Make.c_str());
-    printf("Camera model         : %s\n", result.Model.c_str());
-    printf("Software             : %s\n", result.Software.c_str());
-    printf("Bits per sample      : %d\n", result.BitsPerSample);
-    printf("Image width          : %d\n", result.ImageWidth);
-    printf("Image height         : %d\n", result.ImageHeight);
-    printf("Image description    : %s\n", result.ImageDescription.c_str());
-    printf("Image orientation    : %d\n", result.Orientation);
-    printf("Image copyright      : %s\n", result.Copyright.c_str());
-    printf("Image date/time      : %s\n", result.DateTime.c_str());
-    printf("Original date/time   : %s\n", result.DateTimeOriginal.c_str());
-    printf("Digitize date/time   : %s\n", result.DateTimeDigitized.c_str());
-    printf("Subsecond time       : %s\n", result.SubSecTimeOriginal.c_str());
-    printf("Exposure time        : 1/%d s\n",
-           (unsigned) (1.0 / result.ExposureTime));
-    printf("F-stop               : f/%.1f\n", result.FNumber);
-    printf("Exposure program     : %d\n", result.ExposureProgram);
-    printf("ISO speed            : %d\n", result.ISOSpeedRatings);
-    printf("Subject distance     : %f m\n", result.SubjectDistance);
-    printf("Exposure bias        : %f EV\n", result.ExposureBiasValue);
-    printf("Flash used?          : %d\n", result.Flash);
-    printf("Flash returned light : %d\n", result.FlashReturnedLight);
-    printf("Flash mode           : %d\n", result.FlashMode);
-    printf("Metering mode        : %d\n", result.MeteringMode);
-    printf("Lens focal length    : %f mm\n", result.FocalLength);
-    printf("35mm focal length    : %u mm\n", result.FocalLengthIn35mm);
-    printf("GPS Latitude         : %f deg (%f deg, %f min, %f sec %c)\n",
-           result.GeoLocation.Latitude, result.GeoLocation.LatComponents.degrees,
-           result.GeoLocation.LatComponents.minutes,
-           result.GeoLocation.LatComponents.seconds,
-           result.GeoLocation.LatComponents.direction);
-    printf("GPS Longitude        : %f deg (%f deg, %f min, %f sec %c)\n",
-           result.GeoLocation.Longitude, result.GeoLocation.LonComponents.degrees,
-           result.GeoLocation.LonComponents.minutes,
-           result.GeoLocation.LonComponents.seconds,
-           result.GeoLocation.LonComponents.direction);
-    printf("GPS Altitude         : %f m\n", result.GeoLocation.Altitude);
-    printf("GPS Precision (DOP)  : %f\n", result.GeoLocation.DOP);
-    printf("Lens min focal length: %f mm\n", result.LensInfo.FocalLengthMin);
-    printf("Lens max focal length: %f mm\n", result.LensInfo.FocalLengthMax);
-    printf("Lens f-stop min      : f/%.1f\n", result.LensInfo.FStopMin);
-    printf("Lens f-stop max      : f/%.1f\n", result.LensInfo.FStopMax);
-    printf("Lens make            : %s\n", result.LensInfo.Make.c_str());
-    printf("Lens model           : %s\n", result.LensInfo.Model.c_str());
-    printf("Focal plane XRes     : %f\n", result.LensInfo.FocalPlaneXResolution);
-    printf("Focal plane YRes     : %f\n", result.LensInfo.FocalPlaneYResolution);
+    for (auto &line: lines)
+        line->updateLineEdit(result);
 
     delete[] buf;
 }
-
-//TODO: test exif from github
-void Inspector::mediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-    qDebug() << "mediaStatusChanged" << status;
-    QStringList metadatalist = m_mediaPlayer->availableMetaData();
-
-    int list_size = metadatalist.size();
-
-    qDebug() << m_mediaPlayer->isMetaDataAvailable() << list_size;
-
-    QString metadata_key;
-    QVariant var_data;
-
-    for (int indx = 0; indx < list_size; indx++) {
-        // Get the key from the list
-        metadata_key = metadatalist.at(indx);
-
-        // Get the value for the key
-        var_data = m_mediaPlayer->metaData(metadata_key);
-
-        qDebug() << metadata_key << var_data.toString();
-    }
-}
-
-
-

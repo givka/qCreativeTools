@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QtMultimedia/QMediaPlayer>
+#include "inspector_line.h"
 
 class Inspector : public QWidget
 {
@@ -14,12 +15,10 @@ public slots:
 
     void setImage(const QString &path);
 
-private slots:
-
-    void mediaStatusChanged(QMediaPlayer::MediaStatus status);
-
 private:
     QMediaPlayer *m_mediaPlayer;
+
+    QVector<InspectorLine *> lines;
 };
 
 
