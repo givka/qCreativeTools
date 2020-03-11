@@ -29,8 +29,7 @@ void Inspector::mediaStatusChanged(QMediaPlayer::MediaStatus status)
     QString metadata_key;
     QVariant var_data;
 
-    for (int indx = 0; indx < list_size; indx++)
-    {
+    for (int indx = 0; indx < list_size; indx++) {
         // Get the key from the list
         metadata_key = metadatalist.at(indx);
 

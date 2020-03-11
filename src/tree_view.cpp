@@ -2,18 +2,11 @@
 #include <QDebug>
 
 TreeView::TreeView()
-        : QTreeView(), model(new QFileSystemModel)
+        : QTreeView(),
+          model(new QFileSystemModel)
 {
-    connect(this, &QTreeView::expanded, this, &TreeView::test);
-    connect(this, &QTreeView::collapsed, this, &TreeView::test);
-
-
-
     model->setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
-    model->setRootPath("C:/dev/myman/resources/");
-
-
-
+    model->setRootPath("C:/dev/qCreativeTools/resources/");
 }
 
 void TreeView::init()
@@ -28,17 +21,10 @@ void TreeView::init()
 
     // for (int i = 0; i < 3; ++i)
     //   resizeColumnToContents(i);
-
-}
-
-void TreeView::test(const QModelIndex &index)
-{
 }
 
 void TreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
-   resizeColumnToContents(0);
-
     emit selectedChanged(current, previous);
     QTreeView::currentChanged(current, previous);
 }

@@ -18,8 +18,6 @@ signals :
 
 private slots:
 
-    void test(const QModelIndex &index);
-
     void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 
 private :

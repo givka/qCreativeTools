@@ -16,7 +16,7 @@ signals:
     void showPreview(const QString &string);
 
 private:
-
+    void navigateTo(const QModelIndex &index);
     void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 };
 

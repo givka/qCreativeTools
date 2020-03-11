@@ -16,13 +16,12 @@ VisualPreview::VisualPreview(QWidget *parent)
 
     connect(photos, &QCheckBox::stateChanged, this, &VisualPreview::filterStateChanged);
     connect(videos, &QCheckBox::stateChanged, this, &VisualPreview::filterStateChanged);
-    connect(sizeIconSlider, &QSlider::valueChanged, this, [this](int value)
-    {
+    connect(sizeIconSlider, &QSlider::valueChanged, this, [this](int value) {
         listView->setIconSize(QSize(value, value));
     });
 
     model->setFilter(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
-    model->setRootPath("C:/dev/myman/resources/");
+    model->setRootPath("C:/dev/qCreativeTools/resources/");
     model->setIconProvider(new IconProvider);
     model->setNameFilterDisables(false);
     //model->setNameFilters(QStringList("*.png"));
@@ -57,11 +56,13 @@ void VisualPreview::filterStateChanged()
     auto stringList = QStringList();
 
     if (photos->isChecked())
-        std::transform(IconProvider::ImageTypes.begin(), IconProvider::ImageTypes.end(), std::back_inserter(stringList),
+        std::transform(IconProvider::ImageTypes.begin(), IconProvider::ImageTypes.end(),
+                       std::back_inserter(stringList),
                        [](const QString &string) { return "*." + string; });
 
     if (videos->isChecked())
-        std::transform(IconProvider::VideoTypes.begin(), IconProvider::VideoTypes.end(), std::back_inserter(stringList),
+        std::transform(IconProvider::VideoTypes.begin(), IconProvider::VideoTypes.end(),
+                       std::back_inserter(stringList),
                        [](const QString &string) { return "*." + string; });
 
     model->setNameFilters(stringList);
