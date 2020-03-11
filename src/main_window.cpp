@@ -56,6 +56,7 @@ MainWindow::MainWindow()
     connect(treeView, &TreeView::selectedChanged, visualPreview, &VisualPreview::selectedChanged);
     connect(visualPreview->getListView(), &ListView::showPreview, scene, &Scene::setImage);
     connect(visualPreview->getListView(), &ListView::showPreview, inspector, &Inspector::setImage);
+    connect(visualPreview->getListView(), &ListView::updateTree, treeView, &TreeView::updateTree);
 
     window->setLayout(gridLayout);
 

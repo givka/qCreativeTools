@@ -19,6 +19,9 @@ void TreeView::init()
     hideColumn(2);
     hideColumn(3);
 
+    qDebug() << currentIndex();
+    expand(model->index("C:/dev/qCreativeTools/resources/data/"));
+
     // for (int i = 0; i < 3; ++i)
     //   resizeColumnToContents(i);
 }
@@ -27,4 +30,11 @@ void TreeView::currentChanged(const QModelIndex &current, const QModelIndex &pre
 {
     emit selectedChanged(current, previous);
     QTreeView::currentChanged(current, previous);
+}
+
+void TreeView::updateTree(const QString &filePath)
+{
+    qDebug() << "TreeView::updateTree" << filePath;
+    expand(model->index(filePath));
+    setCurrentIndex(model->index(filePath));
 }

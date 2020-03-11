@@ -16,6 +16,10 @@ signals :
 
     void selectedChanged(const QModelIndex &current, const QModelIndex &previous);
 
+public slots:
+
+    void updateTree(const QString &filePath);
+
 private slots:
 
     void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;

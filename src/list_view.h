@@ -14,6 +14,8 @@ public:
 signals:
 
     void showPreview(const QString &string);
+    void updateTree(const QString &filePath);
+
 
 private:
     void navigateTo(const QModelIndex &index);

@@ -25,6 +25,8 @@ void ListView::navigateTo(const QModelIndex &index)
     auto model = qobject_cast<QFileSystemModel *>(this->model());
     auto info = model->fileInfo(index);
 
-    if (info.isDir())
+    if (info.isDir()) {
         setRootIndex(model->index(info.filePath()));
+        emit updateTree(info.filePath());
+    }
 }
