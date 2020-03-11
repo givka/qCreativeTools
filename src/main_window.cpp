@@ -47,6 +47,7 @@ MainWindow::MainWindow()
     gridLayout->addWidget(groupBox20, 2, 1, 2, 2);
     gridLayout->addWidget(groupBox2, 0, 3, 4, 1);
 
+
     // to keep the rows and columns the same size.
     for (int i = 0; i < gridLayout->rowCount(); i++)
         gridLayout->setRowStretch(i, 1);
