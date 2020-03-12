@@ -42,22 +42,9 @@ void VisualPreview::filterStateChanged()
     auto stringList = QStringList();
 
     if (photos->isChecked())
-        std::transform(IconProvider::ImageTypes.begin(), IconProvider::ImageTypes.end(),
-                       std::back_inserter(stringList),
-                       [](const QString &string) { return "*." + string; });
-
+        stringList.append(IconProvider::ImageTypes);
     if (videos->isChecked())
-        std::transform(IconProvider::VideoTypes.begin(), IconProvider::VideoTypes.end(),
-                       std::back_inserter(stringList),
-                       [](const QString &string) { return "*." + string; });
+        stringList.append(IconProvider::VideoTypes);
 
-    listView->getModel()->setNameFilters(stringList);
-
-    qDebug() << stringList;
-}
-
-void VisualPreview::selectedChanged(const QModelIndex &current, const QModelIndex &previous)
-{
-    qDebug() << "VisualPreview::selectedChanged " << listView->getModel()->filePath(current);
-    listView->setRootIndex(listView->getModel()->index(listView->getModel()->filePath(current)));
+    listView->setFilters(stringList);
 }

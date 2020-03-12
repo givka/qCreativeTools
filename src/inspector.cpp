@@ -156,10 +156,11 @@ Inspector::Inspector(QWidget *parent) :
 
     auto scrollArea = new QScrollArea();
     vLayout2->addWidget(scrollArea);
+    vLayout->setMargin(0);
+
     scrollArea->setWidget(widget);
     vLayout->setMargin(0);
-    scrollArea->setFrameShape(QFrame::Box);
-    scrollArea->setBackgroundRole(QPalette::Light);
+    scrollArea->setFrameShape(QFrame::NoFrame);
 
     setLayout(vLayout2);
 }
@@ -171,7 +172,7 @@ Inspector::Inspector(QWidget *parent) :
 void Inspector::setImage(const QString &path)
 {
     FILE *fp = fopen(path.toStdString().c_str(), "rb");
-    if (!fp){
+    if (!fp) {
         printf("Can't open file.\n");
         return;
     }

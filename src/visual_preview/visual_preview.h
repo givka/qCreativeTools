@@ -19,19 +19,15 @@ public:
 
     ListView *getListView() { return listView; }
 
+private slots:
+
+    void filterStateChanged();
+
 private :
     ListView *listView;
     QCheckBox *videos;
     QCheckBox *photos;
     QSlider *sizeIconSlider;
-
-public slots:
-
-    void selectedChanged(const QModelIndex &current, const QModelIndex &previous);
-
-private slots:
-
-    void filterStateChanged();
 };
 
 

@@ -3,6 +3,8 @@
 #include <QListView>
 #include <QFileSystemModel>
 #include <QtCore/QSortFilterProxyModel>
+#include "icon_proxy.h"
+#include "filter_model.h"
 
 class ListView : public QListView
 {
@@ -13,7 +15,7 @@ public:
 
     void init();
 
-    QFileSystemModel *getModel() { return model; };
+    void setFilters(const QStringList &list);
 
 signals:
 
@@ -21,13 +23,18 @@ signals:
 
     void updateTree(const QString &filePath);
 
-private:
+public slots:
+
     void navigateTo(const QModelIndex &index);
 
-    void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
+private:
+
+    // void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 
 private:
     QFileSystemModel *model;
+    IconProxy *iconProxy;
+    FilterModel *filterModel;
 };
 
 
