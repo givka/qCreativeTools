@@ -52,11 +52,11 @@ int main(int argc, char **argv)
     QApplication::setPalette(palette);
 #endif
 
-    MainWindow mainWindow;
-    mainWindow.show();
-
     QApplication::setWindowIcon(QIcon("C:/dev/qCreativeTools/icon.png"));
 
+    MainWindow mainWindow;
+    mainWindow.setWindowTitle("qCreativeTools");
+    mainWindow.showMaximized();
 
     return QApplication::exec();
 }

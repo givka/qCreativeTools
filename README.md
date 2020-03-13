@@ -18,3 +18,5 @@
  - Note that the setValue() function sets the value and emits the signal only if value != m_value. This prevents infinite looping in the case of cyclic connections (e.g., if b.valueChanged() were connected to a.setValue()).
  
  
+ ## [Learn How to Read 6 Different Scopes to Ensure Proper Exposure and Color Balance](https://nofilmschool.com/2016/11/learn-how-read-6-different-scopes-ensure-proper-exposure-and-color-balance)
+ 

@@ -15,12 +15,17 @@ Scene::Scene(QWidget *parent)
 
 void Scene::setImage(const QString &path)
 {
+    if (path.isEmpty()) {
+        imageLabel->setPixmap(QPixmap());
+        return;
+    }
     auto pixMap = QPixmap(path);
     const int w = imageLabel->width();
     const int h = imageLabel->height();
     qDebug() << "Scene::setImage -> " << path << w << h;
 
     //.scaled(2*w, 2*h).scaled(w, h, Qt::TransformationMode::SmoothTransformation) is way faster
-    imageLabel->setPixmap(pixMap.scaled(w, h, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
+    imageLabel->setPixmap(
+            pixMap.scaled(w, h, Qt::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
 }
 

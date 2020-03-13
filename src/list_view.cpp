@@ -36,26 +36,20 @@ void ListView::init()
     setWordWrap(true);
     setItemDelegate(new StyledItemDelegate);
 }
-/*
+
 void ListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
-    qDebug()<<"currentChanged";
-    qDebug()<<model;
     auto info = model->fileInfo(current);
-    qDebug()<<info;
-
-
     auto suffix = info.suffix().toLower();
-    qDebug()<<"currentChanged";
 
-    if (IconProvider::ImageTypes.contains(suffix) || IconProvider::VideoTypes.contains(suffix)) {
-        qDebug() << "emit showPreview";
-        emit showPreview(info.filePath());
-    }
+    if (IconProvider::ImageTypes.contains(suffix) || IconProvider::VideoTypes.contains(suffix))
+            emit showPreview(info.filePath());
+    else
+            emit showPreview("");
 
     QListView::currentChanged(current, previous);
 }
-*/
+
 void ListView::navigateTo(const QModelIndex &index)
 {
     auto info = model->fileInfo(/*(iconProxy->mapToSource(index))*/index);

@@ -1,11 +1,13 @@
 #include "inspector.h"
 #include "inspector_line.h"
+#include "icon_provider.h"
 #include <QMediaMetaData>
 #include <QtMultimedia/QMediaPlayer>
 
 #include <exif.h>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QScrollArea>
+#include <QFileInfo>
 
 Inspector::Inspector(QWidget *parent) :
         QWidget(parent),
@@ -171,6 +173,15 @@ Inspector::Inspector(QWidget *parent) :
 */
 void Inspector::setImage(const QString &path)
 {
+    for (auto &line: lines)
+        line->setLine("");
+
+    if (path.isEmpty())
+        return;
+
+    if (IconProvider::VideoTypes.contains(QFileInfo(path).suffix().toLower()))
+        return;
+
     FILE *fp = fopen(path.toStdString().c_str(), "rb");
     if (!fp) {
         printf("Can't open file.\n");

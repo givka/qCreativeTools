@@ -54,16 +54,16 @@ MainWindow::MainWindow()
     for (int i = 0; i < gridLayout->columnCount(); i++)
         gridLayout->setColumnStretch(i, 1);
 
-    //connect(treeView, &TreeView::selectedChanged, visualPreview->getListView(), &ListView::navigateTo);
+    connect(treeView, &TreeView::selectedChanged, visualPreview->getListView(), &ListView::navigateTo);
     connect(visualPreview->getListView(), &ListView::showPreview, scene, &Scene::setImage);
     connect(visualPreview->getListView(), &ListView::showPreview, inspector, &Inspector::setImage);
     connect(visualPreview->getListView(), &ListView::updateTree, treeView, &TreeView::updateTree);
 
     window->setLayout(gridLayout);
 
+
+
     setCentralWidget(window);
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.7);
-    setWindowTitle("qCreativeTools");
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)

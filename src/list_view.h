@@ -29,7 +29,7 @@ public slots:
 
 private:
 
-    // void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
+    void currentChanged(const QModelIndex &current, const QModelIndex &previous) override;
 
 private:
     QFileSystemModel *model;
