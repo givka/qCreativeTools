@@ -8,6 +8,7 @@
 #include <opencv2/imgproc.hpp>
 #include <QGroupBox>
 #include <QFileInfo>
+#include <QTabWidget>
 
 Scene::Scene(QWidget *parent)
         : QWidget(parent),
@@ -17,15 +18,38 @@ Scene::Scene(QWidget *parent)
           lWaveform(new QLabel), sWaveform(new QLabel), rWaveform(new QLabel),
           gWaveform(new QLabel), bWaveform(new QLabel)
 {
+    auto histogramsTab = new QTabWidget;
+
+    auto w = new QWidget;
+    auto l = new QVBoxLayout;
+    l->addWidget(lHist);
+    w->setLayout(l);
+    histogramsTab->addTab(w, "Luminance");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(sHist);
+    w->setLayout(l);
+    histogramsTab->addTab(w, "RGB");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(rHist);
+    w->setLayout(l);
+    histogramsTab->addTab(w, "R");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(gHist);
+    w->setLayout(l);
+    histogramsTab->addTab(w, "G");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(bHist);
+    w->setLayout(l);
+    histogramsTab->addTab(w, "B");
 
     auto histograms = new QGroupBox("Histograms");
-    auto vLayout = new QVBoxLayout;
-    vLayout->addWidget(lHist);
-    vLayout->addWidget(sHist);
-    vLayout->addWidget(rHist);
-    vLayout->addWidget(gHist);
-    vLayout->addWidget(bHist);
-    histograms->setLayout(vLayout);
+    auto lay = new QVBoxLayout;
+    lay->addWidget(histogramsTab);
+    histograms->setLayout(lay);
 
     lHist->setBackgroundRole(QPalette::Base);
     lHist->setAutoFillBackground(true);
@@ -38,14 +62,37 @@ Scene::Scene(QWidget *parent)
     bHist->setBackgroundRole(QPalette::Base);
     bHist->setAutoFillBackground(true);
 
+    auto waveformsTab = new QTabWidget;
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(lWaveform);
+    w->setLayout(l);
+    waveformsTab->addTab(w, "Luminance");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(sWaveform);
+    w->setLayout(l);
+    waveformsTab->addTab(w, "RGB");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(rWaveform);
+    w->setLayout(l);
+    waveformsTab->addTab(w, "R");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(gWaveform);
+    w->setLayout(l);
+    waveformsTab->addTab(w, "G");
+    w = new QWidget;
+    l = new QVBoxLayout;
+    l->addWidget(bWaveform);
+    w->setLayout(l);
+    waveformsTab->addTab(w, "B");
+
     auto waveforms = new QGroupBox("Waveforms");
-    auto layout = new QGridLayout;
-    layout->addWidget(lWaveform, 0, 0);
-    layout->addWidget(sWaveform, 0,1);
-    layout->addWidget(rWaveform,1,0);
-    layout->addWidget(gWaveform,1,1);
-    layout->addWidget(bWaveform,1,2);
-    waveforms->setLayout(layout);
+    lay = new QVBoxLayout;
+    lay->addWidget(waveformsTab);
+    waveforms->setLayout(lay);
 
     lWaveform->setBackgroundRole(QPalette::Base);
     lWaveform->setAutoFillBackground(true);
@@ -58,11 +105,20 @@ Scene::Scene(QWidget *parent)
     bWaveform->setBackgroundRole(QPalette::Base);
     bWaveform->setAutoFillBackground(true);
 
+    auto preview = new QGroupBox("Preview");
+    lay = new QVBoxLayout;
+    lay->addWidget(imageLabel);
+    preview->setLayout(lay);
+
     auto hLayout = new QHBoxLayout;
-    hLayout->addWidget(imageLabel);
+    hLayout->addWidget(preview);
     hLayout->addWidget(histograms);
     hLayout->addWidget(waveforms);
     setLayout(hLayout);
+
+    hLayout->setStretch(0, 1);
+    hLayout->setStretch(1, 1);
+    hLayout->setStretch(2, 1);
 
     imageLabel->setAlignment(Qt::AlignCenter);
 }
@@ -122,11 +178,14 @@ void Scene::setImage(const QString &path)
     w = lWaveform->width();
     h = lWaveform->height();
 
+    qDebug() << h;
+
     // careful, opencv in BGR format.
-    auto lWaveformMat = OpenCV::calcWaveform(luminance, cv::Scalar(255, 255, 255, 255));
-    auto rWaveformMat = OpenCV::calcWaveform(channels[2], cv::Scalar(0, 0, 255, 255));
-    auto gWaveformMat = OpenCV::calcWaveform(channels[1], cv::Scalar(0, 255, 0, 255));
-    auto bWaveformMat = OpenCV::calcWaveform(channels[0], cv::Scalar(255, 0, 0, 255));
+    int factor = 50;
+    auto lWaveformMat = OpenCV::calcWaveform(luminance, cv::Scalar(factor, factor, factor, 255));
+    auto rWaveformMat = OpenCV::calcWaveform(channels[2], cv::Scalar(0, 0, factor, 255));
+    auto gWaveformMat = OpenCV::calcWaveform(channels[1], cv::Scalar(0, factor, 0, 255));
+    auto bWaveformMat = OpenCV::calcWaveform(channels[0], cv::Scalar(factor, 0, 0, 255));
     auto sWaveformMat = (rWaveformMat + gWaveformMat + bWaveformMat);
 
     lWaveform->setPixmap(OpenCV::matToPixmap(lWaveformMat, w, h));

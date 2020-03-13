@@ -51,7 +51,7 @@ QPixmap OpenCV::matToPixmap(const cv::Mat &src, int width, int height)
 
 cv::Mat OpenCV::calcWaveform(const cv::Mat &src, const cv::Vec4b &color)
 {
-    int height = 100;
+    int height = 200;
     cv::Mat scope = cv::Mat(height, src.cols, CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
     for (int c = 0; c < src.cols; ++c) {

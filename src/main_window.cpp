@@ -35,7 +35,7 @@ MainWindow::MainWindow()
     vBox1->addWidget(inspector);
     groupBox2->setLayout(vBox1);
 
-    auto groupBox10 = new QGroupBox("Preview");
+    auto groupBox10 = new QGroupBox("Scene");
     auto scene = new Scene;
     vBox1 = new QVBoxLayout;
     vBox1->addWidget(scene);
