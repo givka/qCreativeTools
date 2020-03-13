@@ -6,7 +6,12 @@ TreeView::TreeView()
           model(new QFileSystemModel)
 {
     model->setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+
+#if __APPLE__
+    model->setRootPath("/Users/artich/dev/qCreativeTools/resources/");
+#elif _WIN32
     model->setRootPath("C:/dev/qCreativeTools/resources/");
+#endif
 
     /* TODO: try to remove collapse icon for filtered dirs
     connect(this, &QTreeView::expanded, this,
@@ -14,8 +19,6 @@ TreeView::TreeView()
     connect(this, &QTreeView::collapsed, this,
             [](const QModelIndex &index) { qDebug() << "collapsed" << index; });
     */
-
-
 }
 
 void TreeView::init()

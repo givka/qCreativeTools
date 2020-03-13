@@ -1,6 +1,6 @@
 #pragma once
 
-# include <QSortFilterProxyModel >
+# include <QSortFilterProxyModel>
 # include <QDebug>
 
 class FilterModel : public QSortFilterProxyModel

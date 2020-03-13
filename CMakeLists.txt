@@ -4,7 +4,12 @@ project(QtTest)
 set(CMAKE_CXX_STANDARD 14)
 
 # Tell cmake where Qt is located
-set(Qt5_DIR "G:\\Qt5.14.1\\5.14.1\\mingw73_64\\lib\\cmake\\Qt5")
+
+if(APPLE)
+    set(Qt5_DIR "~/Qt5.9.0/5.9/clang_64/lib/cmake/Qt5")
+else()
+    set(Qt5_DIR "G:\\Qt5.14.1\\5.14.1\\mingw73_64\\lib\\cmake\\Qt5")
+endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

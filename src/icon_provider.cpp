@@ -12,12 +12,23 @@ QIcon IconProvider::icon(const QFileInfo &info) const
     auto filePath = info.filePath();
     auto suffix = info.suffix().toLower();
 
+    if (IconProvider::ImageTypes.contains(suffix)) {
+        auto pixMap = QPixmap();
+        pixMap.load(filePath);
+
+        // first scaled in fast transform for speed.
+        pixMap = pixMap.scaled(2 * Size, 2 * Size, Qt::KeepAspectRatio);
+        pixMap = pixMap.scaled(Size, Size, Qt::KeepAspectRatio,
+                               Qt::TransformationMode::SmoothTransformation);
+
+        return QIcon(pixMap);
+    }
+
     auto pixMap = QFileIconProvider::icon(info).pixmap(QSize(Size, Size));
 
     pixMap = pixMap.scaled(Size, Size, Qt::KeepAspectRatio,
                            Qt::TransformationMode::SmoothTransformation);
 
-    qDebug() << "icon: " << info.filePath();
     return QIcon(pixMap);
 }
 

@@ -6,32 +6,36 @@
 ListView::ListView()
         : QListView(),
           model(new QFileSystemModel),
-          filterModel(new FilterModel),
-          iconProxy(new IconProxy)
+          filterModel(new FilterModel)
+// ,iconProxy(new IconProxy)
 {
     model->setFilter(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
+
+#if __APPLE__
+    model->setRootPath("/Users/artich/dev/qCreativeTools/resources/");
+#elif _WIN32
     model->setRootPath("C:/dev/qCreativeTools/resources/");
+#endif
+
     model->setIconProvider(new IconProvider);
     model->setNameFilterDisables(false);
-    iconProxy->setSourceModel(model);
-    iconProxy->setFilterRegExp(QRegExp("", Qt::CaseInsensitive, QRegExp::FixedString));
+    //iconProxy->setSourceModel(model);
+    //iconProxy->setFilterRegExp(QRegExp("", Qt::CaseInsensitive, QRegExp::FixedString));
 
     connect(this, &QAbstractItemView::doubleClicked, this, &ListView::navigateTo);
 }
 
 void ListView::init()
 {
-    setModel(iconProxy);
-    setRootIndex(iconProxy->mapFromSource(model->index(model->rootPath())));
+    setModel(model);
+    setRootIndex(/*iconProxy->mapFromSource*/(model->index(model->rootPath())));
     setViewMode(QListView::ViewMode::IconMode);
     setResizeMode(QListView::ResizeMode::Adjust);
-    setIconSize(QSize(IconProvider::Size / 2, IconProvider::Size / 2));
     setSpacing(11);
     setMovement(QListView::Movement::Static);
     setWordWrap(true);
     setItemDelegate(new StyledItemDelegate);
 }
-
 /*
 void ListView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
@@ -52,19 +56,25 @@ void ListView::currentChanged(const QModelIndex &current, const QModelIndex &pre
     QListView::currentChanged(current, previous);
 }
 */
-
 void ListView::navigateTo(const QModelIndex &index)
 {
-    auto info = model->fileInfo((iconProxy->mapToSource(index)));
+    auto info = model->fileInfo(/*(iconProxy->mapToSource(index))*/index);
     if (info.isDir()) {
-        setRootIndex(iconProxy->mapFromSource(model->index(info.filePath())));
-        //emit updateTree(info.filePath());
+        setRootIndex(/*iconProxy->mapFromSource(model->index(info.filePath()))*/
+                model->index(info.filePath()));
+        emit updateTree(info.filePath());
     }
 }
 
 void ListView::setFilters(const QStringList &list)
 {
-    auto j = list.join("|");
-    iconProxy->setFilterRegExp(QRegExp(j, Qt::CaseInsensitive, QRegExp::FixedString));
-    iconProxy->setFilters(list);
+    QStringList filters;
+    qDebug() << list;
+    std::transform(list.begin(), list.end(),
+                   std::back_inserter(filters),
+                   [](const QString &string) { return "*." + string; });
+
+    qDebug() << filters;
+
+    model->setNameFilters(filters);
 }
