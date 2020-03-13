@@ -19,15 +19,17 @@ public slots:
 private :
     QLabel *imageLabel;
 
-    static cv::Mat calculateHistogram(const cv::Mat &channel, const cv::Scalar &bgraColor);
-
-    static QPixmap matToPixmap(const cv::Mat &mat, int width, int height);
-
     QLabel *lHist;
     QLabel *sHist;
     QLabel *rHist;
     QLabel *bHist;
     QLabel *gHist;
+
+    QLabel *lWaveform;
+    QLabel *sWaveform;
+    QLabel *rWaveform;
+    QLabel *bWaveform;
+    QLabel *gWaveform;
 };
 
 

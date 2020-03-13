@@ -1,19 +1,21 @@
 #include "scene.h"
 #include "icon_provider.h"
+#include "opencv.h"
 #include <QDebug>
 #include <QtWidgets/QVBoxLayout>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <QGroupBox>
-#include <opencv2/highgui.hpp>
 #include <QFileInfo>
 
 Scene::Scene(QWidget *parent)
         : QWidget(parent),
           imageLabel(new QLabel),
           lHist(new QLabel), sHist(new QLabel), rHist(new QLabel), gHist(new QLabel),
-          bHist(new QLabel)
+          bHist(new QLabel),
+          lWaveform(new QLabel), sWaveform(new QLabel), rWaveform(new QLabel),
+          gWaveform(new QLabel), bWaveform(new QLabel)
 {
 
     auto histograms = new QGroupBox("Histograms");
@@ -36,9 +38,30 @@ Scene::Scene(QWidget *parent)
     bHist->setBackgroundRole(QPalette::Base);
     bHist->setAutoFillBackground(true);
 
+    auto waveforms = new QGroupBox("Waveforms");
+    auto layout = new QGridLayout;
+    layout->addWidget(lWaveform, 0, 0);
+    layout->addWidget(sWaveform, 0,1);
+    layout->addWidget(rWaveform,1,0);
+    layout->addWidget(gWaveform,1,1);
+    layout->addWidget(bWaveform,1,2);
+    waveforms->setLayout(layout);
+
+    lWaveform->setBackgroundRole(QPalette::Base);
+    lWaveform->setAutoFillBackground(true);
+    sWaveform->setBackgroundRole(QPalette::Base);
+    sWaveform->setAutoFillBackground(true);
+    rWaveform->setBackgroundRole(QPalette::Base);
+    rWaveform->setAutoFillBackground(true);
+    gWaveform->setBackgroundRole(QPalette::Base);
+    gWaveform->setAutoFillBackground(true);
+    bWaveform->setBackgroundRole(QPalette::Base);
+    bWaveform->setAutoFillBackground(true);
+
     auto hLayout = new QHBoxLayout;
     hLayout->addWidget(imageLabel);
     hLayout->addWidget(histograms);
+    hLayout->addWidget(waveforms);
     setLayout(hLayout);
 
     imageLabel->setAlignment(Qt::AlignCenter);
@@ -53,6 +76,11 @@ void Scene::setImage(const QString &path)
         rHist->setPixmap(QPixmap());
         gHist->setPixmap(QPixmap());
         bHist->setPixmap(QPixmap());
+        lWaveform->setPixmap(QPixmap());
+        sWaveform->setPixmap(QPixmap());
+        rWaveform->setPixmap(QPixmap());
+        gWaveform->setPixmap(QPixmap());
+        bWaveform->setPixmap(QPixmap());
         return;
     }
 
@@ -79,57 +107,36 @@ void Scene::setImage(const QString &path)
     h = lHist->height();
 
     // careful, opencv in BGR format.
-    auto lMat = calculateHistogram(luminance, cv::Scalar(255, 255, 255, 255));
-    auto rMat = calculateHistogram(channels[2], cv::Scalar(0, 0, 255, 255));
-    auto gMat = calculateHistogram(channels[1], cv::Scalar(0, 255, 0, 255));
-    auto bMat = calculateHistogram(channels[0], cv::Scalar(255, 0, 0, 255));
-    auto sMat = (rMat + gMat + bMat);
+    auto lHistMat = OpenCV::calcHistogram(luminance, cv::Scalar(255, 255, 255, 255));
+    auto rHistMat = OpenCV::calcHistogram(channels[2], cv::Scalar(0, 0, 255, 255));
+    auto gHistMat = OpenCV::calcHistogram(channels[1], cv::Scalar(0, 255, 0, 255));
+    auto bHistMat = OpenCV::calcHistogram(channels[0], cv::Scalar(255, 0, 0, 255));
+    auto sHistMat = (rHistMat + gHistMat + bHistMat);
 
-    lHist->setPixmap(matToPixmap(lMat, w, h));
-    sHist->setPixmap(matToPixmap(sMat, w, h));
-    rHist->setPixmap(matToPixmap(rMat, w, h));
-    gHist->setPixmap(matToPixmap(gMat, w, h));
-    bHist->setPixmap(matToPixmap(bMat, w, h));
+    lHist->setPixmap(OpenCV::matToPixmap(lHistMat, w, h));
+    sHist->setPixmap(OpenCV::matToPixmap(sHistMat, w, h));
+    rHist->setPixmap(OpenCV::matToPixmap(rHistMat, w, h));
+    gHist->setPixmap(OpenCV::matToPixmap(gHistMat, w, h));
+    bHist->setPixmap(OpenCV::matToPixmap(bHistMat, w, h));
+
+    w = lWaveform->width();
+    h = lWaveform->height();
+
+    // careful, opencv in BGR format.
+    auto lWaveformMat = OpenCV::calcWaveform(luminance, cv::Scalar(255, 255, 255, 255));
+    auto rWaveformMat = OpenCV::calcWaveform(channels[2], cv::Scalar(0, 0, 255, 255));
+    auto gWaveformMat = OpenCV::calcWaveform(channels[1], cv::Scalar(0, 255, 0, 255));
+    auto bWaveformMat = OpenCV::calcWaveform(channels[0], cv::Scalar(255, 0, 0, 255));
+    auto sWaveformMat = (rWaveformMat + gWaveformMat + bWaveformMat);
+
+    lWaveform->setPixmap(OpenCV::matToPixmap(lWaveformMat, w, h));
+    sWaveform->setPixmap(OpenCV::matToPixmap(sWaveformMat, w, h));
+    rWaveform->setPixmap(OpenCV::matToPixmap(rWaveformMat, w, h));
+    gWaveform->setPixmap(OpenCV::matToPixmap(gWaveformMat, w, h));
+    bWaveform->setPixmap(OpenCV::matToPixmap(bWaveformMat, w, h));
 }
 
-cv::Mat Scene::calculateHistogram(const cv::Mat &channel, const cv::Scalar &bgraColor)
-{
-    int scale = 4;
-    int hist_w = scale * 256;
-    int hist_h = (int) ((float) hist_w * 9 / 16);
 
-    int histSize = 256;
-    int bin_w = hist_w / histSize;
-    int thickness = (scale + 1) / 2;
-    bool uniform = true;
-    bool accumulate = false;
 
-    float range[] = { 0, 256 }; //the upper boundary is exclusive
-    const float *histRange = { range };
 
-    cv::Mat hist;
-    calcHist(&channel, 1, nullptr, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
-    cv::Mat histImage(hist_h, hist_w, CV_8UC4, cv::Scalar(0, 0, 0, 0));
-
-    normalize(hist, hist, 0, histImage.rows, cv::NORM_MINMAX, -1, cv::Mat());
-
-    for (int i = 1; i < histSize; i++) {
-        cv::line(histImage,
-                 cv::Point(bin_w * (i - 1) - thickness, hist_h - cvRound(hist.at<float>(i - 1))),
-                 cv::Point(bin_w * (i - 1) - thickness, hist_h),
-                 bgraColor, thickness, CV_AA, 0);
-    }
-
-    return histImage.clone();
-}
-
-QPixmap Scene::matToPixmap(const cv::Mat &mat, int width, int height)
-{
-    // strange that it works with a const reference
-    cv::cvtColor(mat, mat, CV_BGRA2RGBA);
-    auto image = QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGBA8888);
-    return QPixmap::fromImage(image).scaled(width, height,
-                                            Qt::IgnoreAspectRatio,
-                                            Qt::TransformationMode::SmoothTransformation);
-}
 
