@@ -23,7 +23,7 @@ VisualPreview::VisualPreview(QWidget *parent)
 
     sizeIconSlider->setMinimum(32);
     sizeIconSlider->setMaximum(IconProvider::Size);
-    sizeIconSlider->setValue(IconProvider::Size / 2);
+    sizeIconSlider->setValue((int) (IconProvider::Size / 2.5));
 
     auto sliderBox = new QGroupBox("Icon size");
     sliderBox->setLayout(new QVBoxLayout);
