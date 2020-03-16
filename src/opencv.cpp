@@ -5,6 +5,7 @@
 #include "opencv.h"
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 cv::Mat OpenCV::calcHistogram(const cv::Mat &channel, const cv::Vec4b &bgraColor)
 {
@@ -57,9 +58,135 @@ cv::Mat OpenCV::calcWaveform(const cv::Mat &src, const cv::Vec4b &color)
     for (int c = 0; c < src.cols; ++c) {
         for (int r = 0; r < src.rows; ++r) {
             float value = (float) src.at<uchar>(r, c) / 255.f;
-            int row = height - (int) (value * (float) (height-1)) - 1;
+            int row = height - (int) (value * (float) (height - 1)) - 1;
             scope.at<cv::Vec4b>(row, c) += color;
         }
     }
     return scope;
+}
+
+void calc(int &row, int &column, int size, const cv::Vec3b &value)
+{
+
+    int Y = value[0];
+    int Cr = value[1];
+    int Cb = value[2];
+
+    float y = Y / 255.f;
+    float cr = Cr / 255.f * 2 - 1;
+    float cb = Cb / 255.f * 2 - 1;
+
+
+    // hacked values to get into grid
+    cr = -cr;
+
+    row = size / 2 + y * cr * size / 2;
+    column = size / 2 + y * cb * size / 2;
+
+    // std::cout << row << ", " << column << "\n";
+}
+
+void calcRect(cv::Mat &mat, const cv::Scalar &color, float sizeRect)
+{
+    cv::Mat a;
+    cv::Mat b(1, 1, CV_8UC3, color);
+    cvtColor(b, a, CV_BGR2YCrCb);
+
+    int r, c;
+    cv::Vec3b value = cv::Vec3b(a.data[0], a.data[1], a.data[2]);
+    calc(r, c, mat.rows, value);
+
+    rectangle(mat,
+              cv::Point(c - sizeRect, r - sizeRect),
+              cv::Point(c + sizeRect, r + sizeRect), color, 1);
+}
+
+cv::Mat OpenCV::calcVectorscope(const cv::Mat &src)
+{
+    int size = 400;
+
+    cv::Mat ycrcb;
+    cvtColor(src, ycrcb, CV_BGR2YCrCb);
+
+    //cv::Mat screen = cv::imread("../vectorscope.png", -1);
+    //resize(screen, screen, cv::Size(size, size), 0, 0, cv::INTER_CUBIC);
+
+    cv::Mat vectorScope = cv::Mat(size, size, CV_8UC4, cv::Vec4b(25, 25, 25, 255));
+
+//    Mat perspective = getPerspectiveTransform(points1, points2);
+
+    for (int row = 0; row < ycrcb.rows; ++row) {
+        for (int column = 0; column < ycrcb.cols; ++column) {
+            cv::Vec3b value = ycrcb.at<cv::Vec3b>(row, column);
+
+            auto color = src.at<cv::Vec3b>(row, column);
+            int r, c;
+            calc(r, c, size, value);
+
+            vectorScope.at<cv::Vec4b>(r, c) += 0.2 * cv::Vec4b(color[0], color[1],
+                                                               color[2], 255);
+
+            //circle(vectorScope, Point(c, r), 3, color, -1);
+        }
+    }
+
+
+    /*
+     for (int row = 0; row < vectorScope.rows; ++row) {
+         for (int column = 0; column < vectorScope.cols; ++column) {
+             auto value = ycrcb.at<Vec3b>(row, column);
+
+             auto mask = screen.at<Vec4b>(row, column);
+             auto color = 0.1 * value;
+             //if(mask[3]>0.f)
+             vectorScope.at<Vec4b>(row, column) += Vec4b(color[0], color[1], color[2], 255);
+         }
+     }
+    */
+
+    float sizeRect = 10;
+    float sizeRect75 = 10;
+
+    /*
+    0.113725, -0.160784, 1
+    0.588235, -0.835294, -0.662745
+    0.298039, 1, -0.333333
+    0.886275, 0.168628, -0.992157
+    0.411765, 0.843137, 0.670588
+    0.113725, -0.160784, 1
+    0.701961, -1, 0.341177
+    */
+
+    /*
+        203, 222
+        298, 122
+        140, 180
+        170, 24
+        130, 255
+        203, 222
+        340, 247
+     *
+     *
+     *
+     *
+     *
+     *
+     */
+
+    calcRect(vectorScope, cv::Scalar(0, 255, 0,255), sizeRect);
+    calcRect(vectorScope, cv::Scalar(0, 0, 255,255), sizeRect);
+    calcRect(vectorScope, cv::Scalar(0, 255, 255,255), sizeRect);
+    calcRect(vectorScope, cv::Scalar(255, 0, 255,255), sizeRect);
+    calcRect(vectorScope, cv::Scalar(255, 0, 0,255), sizeRect);
+    calcRect(vectorScope, cv::Scalar(255, 255, 0,255), sizeRect);
+
+    calcRect(vectorScope, 0.75f * cv::Scalar(255, 0, 0,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(0, 255, 0,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(0, 0, 255,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(0, 255, 255,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(255, 0, 255,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(255, 0, 0,255), sizeRect * 0.75f);
+    calcRect(vectorScope, 0.75f * cv::Scalar(255, 255, 0,255), sizeRect * 0.75f);
+
+    return vectorScope;
 }

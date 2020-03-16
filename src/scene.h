@@ -30,6 +30,8 @@ private :
     QLabel *rWaveform;
     QLabel *bWaveform;
     QLabel *gWaveform;
+
+    QLabel *vectorscope;
 };
 
 

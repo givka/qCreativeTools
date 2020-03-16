@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QFileInfo>
 #include <QTabWidget>
+#include <QSplitter>
 
 Scene::Scene(QWidget *parent)
         : QWidget(parent),
@@ -16,7 +17,8 @@ Scene::Scene(QWidget *parent)
           lHist(new QLabel), sHist(new QLabel), rHist(new QLabel), gHist(new QLabel),
           bHist(new QLabel),
           lWaveform(new QLabel), sWaveform(new QLabel), rWaveform(new QLabel),
-          gWaveform(new QLabel), bWaveform(new QLabel)
+          gWaveform(new QLabel), bWaveform(new QLabel),
+          vectorscope(new QLabel)
 {
     auto histogramsTab = new QTabWidget;
 
@@ -110,15 +112,39 @@ Scene::Scene(QWidget *parent)
     lay->addWidget(imageLabel);
     preview->setLayout(lay);
 
-    auto hLayout = new QHBoxLayout;
-    hLayout->addWidget(preview);
-    hLayout->addWidget(histograms);
-    hLayout->addWidget(waveforms);
-    setLayout(hLayout);
+    auto vectorScope = new QGroupBox("Vectorscope");
+    lay = new QVBoxLayout;
+    lay->addWidget(vectorscope);
+    vectorScope->setLayout(lay);
 
-    hLayout->setStretch(0, 1);
-    hLayout->setStretch(1, 1);
-    hLayout->setStretch(2, 1);
+/*
+    auto hLayout = new QHBoxLayout;
+     hLayout->addWidget(preview);
+     hLayout->addWidget(histograms);
+     hLayout->addWidget(waveforms);
+     hLayout->addWidget(vectorScope);
+     setLayout(hLayout);
+
+     hLayout->setStretch(0, 1);
+     hLayout->setStretch(1, 1);
+     hLayout->setStretch(2, 1);
+     hLayout->setStretch(3, 1);
+
+*/
+
+    auto gridLayout = new QGridLayout;
+    gridLayout->addWidget(preview, 0, 0, 1, 3);
+    gridLayout->addWidget(histograms, 1, 0);
+    gridLayout->addWidget(waveforms, 1, 1);
+    gridLayout->addWidget(vectorScope, 1, 2);
+
+    // to keep the rows and columns the same size.
+    for (int i = 0; i < gridLayout->rowCount(); i++)
+        gridLayout->setRowStretch(i, 1);
+    for (int i = 0; i < gridLayout->columnCount(); i++)
+        gridLayout->setColumnStretch(i, 1);
+
+    setLayout(gridLayout);
 
     imageLabel->setAlignment(Qt::AlignCenter);
 }
@@ -137,6 +163,7 @@ void Scene::setImage(const QString &path)
         rWaveform->setPixmap(QPixmap());
         gWaveform->setPixmap(QPixmap());
         bWaveform->setPixmap(QPixmap());
+        vectorscope->setPixmap(QPixmap());
         return;
     }
 
@@ -178,8 +205,6 @@ void Scene::setImage(const QString &path)
     w = lWaveform->width();
     h = lWaveform->height();
 
-    qDebug() << h;
-
     // careful, opencv in BGR format.
     int factor = 50;
     auto lWaveformMat = OpenCV::calcWaveform(luminance, cv::Scalar(factor, factor, factor, 255));
@@ -193,6 +218,12 @@ void Scene::setImage(const QString &path)
     rWaveform->setPixmap(OpenCV::matToPixmap(rWaveformMat, w, h));
     gWaveform->setPixmap(OpenCV::matToPixmap(gWaveformMat, w, h));
     bWaveform->setPixmap(OpenCV::matToPixmap(bWaveformMat, w, h));
+
+    w = vectorscope->width();
+    h = vectorscope->height();
+
+    auto vectorscopeMat = OpenCV::calcVectorscope(src);
+    vectorscope->setPixmap(OpenCV::matToPixmap(vectorscopeMat, w, h));
 }
 
 

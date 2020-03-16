@@ -13,6 +13,8 @@ class OpenCV
 public:
     static cv::Mat calcHistogram(const cv::Mat &channel, const cv::Vec4b &bgraColor);
 
+    static cv::Mat calcVectorscope(const cv::Mat &src);
+
     static cv::Mat calcWaveform(const cv::Mat &src, const cv::Vec4b &color);
 
     static QPixmap matToPixmap(const cv::Mat &src, int width, int height);

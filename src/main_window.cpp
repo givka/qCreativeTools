@@ -42,10 +42,10 @@ MainWindow::MainWindow()
     groupBox10->setLayout(vBox1);
 
     auto gridLayout = new QGridLayout;
-    gridLayout->addWidget(groupBox10, 0, 0, 2, 3);
-    gridLayout->addWidget(groupBox1, 2, 0, 2, 1);
-    gridLayout->addWidget(groupBox20, 2, 1, 2, 2);
-    gridLayout->addWidget(groupBox2, 0, 3, 4, 1);
+    gridLayout->addWidget(groupBox10, 0, 0, 3, 3);
+    gridLayout->addWidget(groupBox1, 3, 0, 2, 1);
+    gridLayout->addWidget(groupBox20, 3, 1, 2, 2);
+    gridLayout->addWidget(groupBox2, 0, 3, 5, 1);
 
 
     // to keep the rows and columns the same size.
