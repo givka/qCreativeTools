@@ -23,7 +23,7 @@ SettingsWindow::SettingsWindow() :
 
     layout->addWidget(groupBox);
 
-    layout->setStretch(0, 3);
+    layout->setStretch(0, 2);
     layout->setStretch(1, 1);
 
     auto window = new QWidget;

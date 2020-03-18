@@ -13,6 +13,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QLineEdit>
+#include <QDoubleSpinBox>
 
 Settings::Settings() : QWidget(), scene(new QGraphicsScene)
 {
@@ -22,7 +23,7 @@ Settings::Settings() : QWidget(), scene(new QGraphicsScene)
     tree->setHeaderHidden(true);
     tree->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
     tree->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-    tree->setStyleSheet("QTreeWidget::item{padding:5px;}");
+    tree->setStyleSheet("QTreeWidget{padding:5px;}");
 
     auto bg = new QTreeWidgetItem(tree);
     bg->setExpanded(true);
@@ -34,56 +35,41 @@ Settings::Settings() : QWidget(), scene(new QGraphicsScene)
         auto widget = new QWidget;
         auto hLayout = new QHBoxLayout;
 
-        auto image = QImage(QSize(1, 1), QImage::Format_RGBA8888);
-        image.setPixelColor(QPoint(0, 0), scene->backgroundBrush().color());
-        auto label = new QLabel;
-        label->setPixmap(QPixmap::fromImage(image).scaled(QSize(10, 10)));
-        hLayout->addWidget(label);
+        auto image = new QImage(QSize(1, 1), QImage::Format_RGBA8888);
+        image->setPixelColor(QPoint(0, 0), scene->backgroundBrush().color());
+        auto imageLabel = new QLabel;
+        imageLabel->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+        hLayout->addWidget(imageLabel);
 
-        label = new QLabel("r");
-        auto lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(scene->backgroundBrush().color().red()));
-        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            auto c = scene->backgroundBrush().color();
-            c.setRed(lineEdit->text().toInt());
-            scene->setBackgroundBrush(QBrush(c));
-        });
-        hLayout->addWidget(label);
-        hLayout->addWidget(lineEdit);
+        addColorColumn(hLayout, "r", scene->backgroundBrush().color().redF(), imageLabel, image,
+                       [this](double value) {
+                           auto c = scene->backgroundBrush().color();
+                           c.setRedF(value);
+                           scene->setBackgroundBrush(QBrush(c));
+                       });
 
-        label = new QLabel("g");
-        lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(scene->backgroundBrush().color().green()));
-        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            auto c = scene->backgroundBrush().color();
-            c.setGreen(lineEdit->text().toInt());
-            scene->setBackgroundBrush(QBrush(c));
-        });
-        hLayout->addWidget(label);
-        hLayout->addWidget(lineEdit);
+        addColorColumn(hLayout, "g", scene->backgroundBrush().color().greenF(), imageLabel, image,
+                       [this](double value) {
+                           auto c = scene->backgroundBrush().color();
+                           c.setGreenF(value);
+                           scene->setBackgroundBrush(QBrush(c));
+                       });
 
-        label = new QLabel("b");
-        lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(scene->backgroundBrush().color().blue()));
-        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            auto c = scene->backgroundBrush().color();
-            c.setBlue(lineEdit->text().toInt());
-            scene->setBackgroundBrush(QBrush(c));
-        });
-        hLayout->addWidget(label);
-        hLayout->addWidget(lineEdit);
+        addColorColumn(hLayout, "b", scene->backgroundBrush().color().blueF(), imageLabel, image,
+                       [this](double value) {
+                           auto c = scene->backgroundBrush().color();
+                           c.setBlueF(value);
+                           scene->setBackgroundBrush(QBrush(c));
+                       });
 
-        label = new QLabel("a");
-        lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(scene->backgroundBrush().color().alpha()));
-        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            auto c = scene->backgroundBrush().color();
-            c.setAlpha(lineEdit->text().toInt());
-            scene->setBackgroundBrush(QBrush(c));
-        });
-        hLayout->addWidget(label);
-        hLayout->addWidget(lineEdit);
-        hLayout->setMargin(0);
+        addColorColumn(hLayout, "a", scene->backgroundBrush().color().alphaF(), imageLabel, image,
+                       [this](double value) {
+                           auto c = scene->backgroundBrush().color();
+                           c.setAlphaF(value);
+                           scene->setBackgroundBrush(QBrush(c));
+                       });
+
         widget->setLayout(hLayout);
         tree->setItemWidget(item, 0, widget);
     }
@@ -138,70 +124,40 @@ Settings::Settings() : QWidget(), scene(new QGraphicsScene)
             auto image = new QImage(QSize(1, 1), QImage::Format_RGBA8888);
             image->setPixelColor(QPoint(0, 0), shape->brush().color());
             auto imageLabel = new QLabel;
+            imageLabel->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
             imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
             hLayout->addWidget(imageLabel);
 
-            auto label = new QLabel("r");
-            auto lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->brush().color().red()));
-            connect(lineEdit, &QLineEdit::editingFinished, this,
-                    [this, lineEdit, shape, image, imageLabel]() {
-                        auto c = shape->brush().color();
-                        c.setRed(lineEdit->text().toInt());
-                        shape->setBrush(QBrush(c));
-                        shape->setPen(QPen(c));
-                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
-                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
-                    });
-            hLayout->addWidget(label);
-            hLayout->addWidget(lineEdit);
+            addColorColumn(hLayout, "r", shape->brush().color().redF(), imageLabel, image,
+                           [shape](double value) {
+                               auto c = shape->brush().color();
+                               c.setRedF(value);
+                               shape->setBrush(QBrush(c));
+                               shape->setPen(QPen(c));
+                           });
 
-            label = new QLabel("g");
-            lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->brush().color().green()));
-            connect(lineEdit, &QLineEdit::editingFinished, this,
-                    [this, lineEdit, shape, image, imageLabel]() {
-                        auto c = shape->brush().color();
-                        c.setGreen(lineEdit->text().toInt());
-                        shape->setBrush(QBrush(c));
-                        shape->setPen(QPen(c));
-                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
-                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
-                    });
-            hLayout->addWidget(label);
-            hLayout->addWidget(lineEdit);
+            addColorColumn(hLayout, "g", shape->brush().color().greenF(), imageLabel, image,
+                           [shape](double value) {
+                               auto c = shape->brush().color();
+                               c.setGreenF(value);
+                               shape->setBrush(QBrush(c));
+                               shape->setPen(QPen(c));
+                           });
+            addColorColumn(hLayout, "b", shape->brush().color().blueF(), imageLabel, image,
+                           [shape](double value) {
+                               auto c = shape->brush().color();
+                               c.setBlueF(value);
+                               shape->setBrush(QBrush(c));
+                               shape->setPen(QPen(c));
+                           });
+            addColorColumn(hLayout, "a", shape->brush().color().alphaF(), imageLabel, image,
+                           [shape](double value) {
+                               auto c = shape->brush().color();
+                               c.setAlphaF(value);
+                               shape->setBrush(QBrush(c));
+                               shape->setPen(QPen(c));
+                           });
 
-            label = new QLabel("b");
-            lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->brush().color().blue()));
-            connect(lineEdit, &QLineEdit::editingFinished, this,
-                    [this, lineEdit, shape, image, imageLabel]() {
-                        auto c = shape->brush().color();
-                        c.setBlue(lineEdit->text().toInt());
-                        shape->setBrush(QBrush(c));
-                        shape->setPen(QPen(c));
-                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
-                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
-                    });
-            hLayout->addWidget(label);
-            hLayout->addWidget(lineEdit);
-
-            label = new QLabel("a");
-            lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->brush().color().alpha()));
-            connect(lineEdit, &QLineEdit::editingFinished, this,
-                    [this, lineEdit, shape, image, imageLabel]() {
-                        auto c = shape->brush().color();
-                        c.setAlpha(lineEdit->text().toInt());
-                        shape->setBrush(QBrush(c));
-                        shape->setPen(QPen(c));
-                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
-                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
-                    });
-            hLayout->addWidget(label);
-            hLayout->addWidget(lineEdit);
-
-            hLayout->setMargin(0);
             widget->setLayout(hLayout);
             tree->setItemWidget(treeItem, 0, widget);
         }
@@ -353,6 +309,28 @@ void Settings::load()
                            QBrush(color));
         };
     }
+}
+
+void Settings::addColorColumn(QHBoxLayout *hLayout, const QString &name, double value,
+                              QLabel *imageLabel, QImage *image,
+                              const std::function<void(double)> &function)
+{
+
+    auto label = new QLabel(name);
+    label->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
+    auto spinBox = new QDoubleSpinBox();
+    spinBox->setRange(0, 1);
+    spinBox->setDecimals(1);
+    spinBox->setSingleStep(0.1);
+    spinBox->setValue(value);
+    connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            [this, spinBox, imageLabel, image, function]() {
+                function(spinBox->value());
+                image->setPixelColor(QPoint(0, 0), scene->backgroundBrush().color());
+                imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+            });
+    hLayout->addWidget(label);
+    hLayout->addWidget(spinBox);
 }
 
 

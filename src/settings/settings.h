@@ -4,6 +4,8 @@
 #include <QVector2D>
 #include <QVector4D>
 #include <QGraphicsScene>
+#include <QHBoxLayout>
+#include <QLabel>
 
 class Settings : public QWidget
 {
@@ -27,6 +29,8 @@ private:
     static QColor arrayToQColor(const QJsonArray &jsonArray);
 
     QGraphicsScene *scene;
-};
 
+    void addColorColumn(QHBoxLayout *hLayout, const QString &name, double value, QLabel *imageLabel,
+                        QImage *image, const std::function<void(double)> &function);
+};
 
