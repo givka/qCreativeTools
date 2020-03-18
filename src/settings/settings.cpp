@@ -27,7 +27,6 @@ Settings::Settings() : QWidget()
     {
         auto color = bgColor;
 
-
         auto item = new QTreeWidgetItem(bg);
 
         auto widget = new QWidget;
@@ -45,28 +44,44 @@ Settings::Settings() : QWidget()
         label = new QLabel("r");
         auto lineEdit = new QLineEdit();
         lineEdit->setText(QString::number(color.x()));
-        lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
+            bgColor.setX((float) lineEdit->text().toDouble());
+            emit render(bgColor, shapes);
+        });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("g");
         lineEdit = new QLineEdit();
         lineEdit->setText(QString::number(color.y()));
-        lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
+            bgColor.setY((float) lineEdit->text().toDouble());
+            emit render(bgColor, shapes);
+        });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("b");
         lineEdit = new QLineEdit();
         lineEdit->setText(QString::number(color.z()));
-        lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
+            bgColor.setZ((float) lineEdit->text().toDouble());
+            emit render(bgColor, shapes);
+        });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("a");
         lineEdit = new QLineEdit();
         lineEdit->setText(QString::number(color.w()));
-        lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
+            bgColor.setW((float) lineEdit->text().toDouble());
+            emit render(bgColor, shapes);
+        });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
         hLayout->setMargin(0);
@@ -89,13 +104,17 @@ Settings::Settings() : QWidget()
             auto item = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("type");
-            auto comboBox = new QComboBox;
-            comboBox->addItems(QStringList{ "Rect", "Circle" });
-            comboBox->setCurrentText(shape->type);
+            auto typeLineEdit = new QLineEdit(shape->type);
+            typeLineEdit->setReadOnly(true);
+            /*
+             auto comboBox = new QComboBox;
+             comboBox->addItems(QStringList{ "Rect", "Circle" });
+             comboBox->setCurrentText(shape->type);
+             */
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
-            hLayout->addWidget(comboBox);
+            hLayout->addWidget(typeLineEdit);
             widget->setLayout(hLayout);
             tree->setItemWidget(item, 0, widget);
         }
@@ -124,28 +143,44 @@ Settings::Settings() : QWidget()
             label = new QLabel("r");
             auto lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(color.x()));
-            lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
+                shape->color.setX((float) lineEdit->text().toDouble());
+                emit render(bgColor, shapes);
+            });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("g");
             lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(color.y()));
-            lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
+                shape->color.setY((float) lineEdit->text().toDouble());
+                emit render(bgColor, shapes);
+            });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("b");
             lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(color.z()));
-            lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
+                shape->color.setZ((float) lineEdit->text().toDouble());
+                emit render(bgColor, shapes);
+            });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("a");
             lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(color.w()));
-            lineEdit->setValidator(new QDoubleValidator(0, 1, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
+                shape->color.setW((float) lineEdit->text().toDouble());
+                emit render(bgColor, shapes);
+            });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             hLayout->setMargin(0);
@@ -155,13 +190,17 @@ Settings::Settings() : QWidget()
 
         // circle radius
         if (shape->type == "Circle") {
-            auto circle = (Circle *) shape;
+            auto circle = static_cast<Circle *>(shape);
             auto item = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("radius");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new QDoubleValidator(0, 1000, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
             lineEdit->setText(QString::number(circle->radius));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, circle]() {
+                circle->radius = (float) lineEdit->text().toDouble();
+                emit render(bgColor, shapes);
+            });
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
@@ -172,13 +211,18 @@ Settings::Settings() : QWidget()
 
         //rect width
         if (shape->type == "Rect") {
-            Rect *rect = (Rect *) shape;
+            auto rect = static_cast<Rect *>(shape);
             auto item = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("width");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new QDoubleValidator(0, 1000, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
             lineEdit->setText(QString::number(rect->width));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, rect]() {
+                rect->width = (float) lineEdit->text().toDouble();
+                emit render(bgColor, shapes);
+            });
+
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
@@ -189,13 +233,17 @@ Settings::Settings() : QWidget()
 
         // rect height
         if (shape->type == "Rect") {
-            Rect *rect = (Rect *) shape;
+            auto rect = static_cast<Rect *>(shape);
             auto item = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("height");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new QDoubleValidator(0, 1000, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
             lineEdit->setText(QString::number(rect->height));
+            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, rect]() {
+                rect->height = (float) lineEdit->text().toDouble();
+                emit render(bgColor, shapes);
+            });
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
@@ -218,14 +266,14 @@ Settings::Settings() : QWidget()
             auto label = new QLabel("x");
             auto lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(shape->position.x()));
-            lineEdit->setValidator(new QDoubleValidator(-1000, 1000, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(-1000, 1000, 3, widget));
 
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             label = new QLabel("y");
             lineEdit = new QLineEdit();
             lineEdit->setText(QString::number(shape->position.y()));
-            lineEdit->setValidator(new QDoubleValidator(-1000, 1000, 3, widget));
+            lineEdit->setValidator(new MyDoubleValidator(-1000, 1000, 3, widget));
 
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
@@ -256,21 +304,19 @@ void Settings::load()
     QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
 
     if (!loadFile.open(QIODevice::ReadOnly))
-        qWarning("Couldn't open settings file.");
+        qWarning("ReadOnly Couldn't open settings file.");
 
     QJsonDocument loadDoc = QJsonDocument::fromJson(loadFile.readAll());
 
     auto json = loadDoc.object();
 
-     bgColor = arrayToQColor(json["bg_color"].toArray());
-    qDebug() << bgColor;
+    bgColor = arrayToQColor(json["bg_color"].toArray());
 
     auto shapesArray = json["shapes"].toArray();
 
     for (const auto &shape : shapesArray) {
         auto shapeObject = shape.toObject();
         auto type = shapeObject["type"].toString();
-        qDebug() << type;
 
         if (type == "Circle") {
             auto circle = new Circle;
@@ -291,6 +337,8 @@ void Settings::load()
             shapes.push_back(rect);
         };
     }
+
+    emit render(bgColor, shapes);
 }
 
 

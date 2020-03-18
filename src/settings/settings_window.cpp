@@ -27,11 +27,10 @@ SettingsWindow::SettingsWindow() :
     layout->setStretch(0, 3);
     layout->setStretch(1, 1);
 
+    connect(settings, &Settings::render, drawArea, &DrawArea::drawShapes);
 
     auto window = new QWidget;
     window->setLayout(layout);
-
-
 
     setCentralWidget(window);
 }
