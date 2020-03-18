@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QPushButton>
 #include "src/main_window.h"
+#include "src/settings_window.h"
 
 int main(int argc, char **argv)
 {
@@ -52,11 +53,21 @@ int main(int argc, char **argv)
     QApplication::setPalette(palette);
 #endif
 
-    QApplication::setWindowIcon(QIcon("C:/dev/qCreativeTools/icon.png"));
+#if __APPLE__
+    QApplication::setWindowIcon(QIcon("/Users/dev/qCreativeTools/resources/icon.png"));
+#elif _WIN32
+    QApplication::setWindowIcon(QIcon("C:/dev/qCreativeTools/resources/icon.png"));
+#endif
 
+/*
     MainWindow mainWindow;
     mainWindow.setWindowTitle("qCreativeTools");
     mainWindow.showMaximized();
+
+ */
+    SettingsWindow settingsWindow;
+    settingsWindow.setWindowTitle("qCreativeTools");
+    settingsWindow.showMaximized();
 
     return QApplication::exec();
 }
