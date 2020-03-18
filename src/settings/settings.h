@@ -3,7 +3,7 @@
 #include <QTreeView>
 #include <QVector2D>
 #include <QVector4D>
-#include "shape.h"
+#include <QGraphicsScene>
 
 class Settings : public QWidget
 {
@@ -12,30 +12,21 @@ Q_OBJECT
 public :
     Settings();
 
-signals:
-
-    void render(const QVector4D &bgColor, const QVector<Shape *> &shapes);
+    QGraphicsScene *getScene() { return scene; }
 
 private:
-    QVector<Shape *> shapes{};
+
+    enum ItemType
+    {
+        Rect = 3,
+        Circle = 4
+    };
 
     void load();
 
-    static QVector4D arrayToQColor(const QJsonArray &jsonArray);
+    static QColor arrayToQColor(const QJsonArray &jsonArray);
 
-    QVector4D bgColor;
-
-    class MyDoubleValidator : public QDoubleValidator{
-    public:
-        explicit MyDoubleValidator(QObject* parent= nullptr)
-                :QDoubleValidator(parent){}
-        MyDoubleValidator(double bottom, double top, int decimals, QObject* parent=nullptr)
-                :QDoubleValidator(bottom, top, decimals, parent){}
-
-        virtual void fixup(QString& input)const override{
-            input= QString::number(bottom(), 'f', decimals());
-        }
-    };
+    QGraphicsScene *scene;
 };
 
 

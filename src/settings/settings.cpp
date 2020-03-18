@@ -8,12 +8,13 @@
 #include <QImage>
 #include <QStandardItemModel>
 #include <QHBoxLayout>
+#include <QGraphicsItem>
 #include <QTreeWidget>
 #include <QLabel>
 #include <QComboBox>
 #include <QLineEdit>
 
-Settings::Settings() : QWidget()
+Settings::Settings() : QWidget(), scene(new QGraphicsScene)
 {
     load();
 
@@ -22,65 +23,63 @@ Settings::Settings() : QWidget()
     tree->setSelectionMode(QAbstractItemView::SelectionMode::NoSelection);
     tree->setFocusPolicy(Qt::FocusPolicy::NoFocus);
     tree->setStyleSheet("QTreeWidget::item{padding:5px;}");
-    auto bg = new QTreeWidgetItem(tree);
-    bg->setText(0, "background color");
-    {
-        auto color = bgColor;
 
+    auto bg = new QTreeWidgetItem(tree);
+    bg->setExpanded(true);
+    bg->setText(0, "background color");
+
+    {
         auto item = new QTreeWidgetItem(bg);
 
         auto widget = new QWidget;
         auto hLayout = new QHBoxLayout;
 
         auto image = QImage(QSize(1, 1), QImage::Format_RGBA8888);
-        image.setPixelColor(QPoint(0, 0),
-                            QColor(255 * color.x(), 255 * color.y(), 255 * color.z(),
-                                   255 * color.w()));
+        image.setPixelColor(QPoint(0, 0), scene->backgroundBrush().color());
         auto label = new QLabel;
-        label->setPixmap(
-                QPixmap::fromImage(image).scaled(QSize(10, 10)));
+        label->setPixmap(QPixmap::fromImage(image).scaled(QSize(10, 10)));
         hLayout->addWidget(label);
 
         label = new QLabel("r");
         auto lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(color.x()));
-        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        lineEdit->setText(QString::number(scene->backgroundBrush().color().red()));
         connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            bgColor.setX((float) lineEdit->text().toDouble());
-            emit render(bgColor, shapes);
+            auto c = scene->backgroundBrush().color();
+            c.setRed(lineEdit->text().toInt());
+            scene->setBackgroundBrush(QBrush(c));
         });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("g");
         lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(color.y()));
-        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        lineEdit->setText(QString::number(scene->backgroundBrush().color().green()));
         connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            bgColor.setY((float) lineEdit->text().toDouble());
-            emit render(bgColor, shapes);
+            auto c = scene->backgroundBrush().color();
+            c.setGreen(lineEdit->text().toInt());
+            scene->setBackgroundBrush(QBrush(c));
         });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("b");
         lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(color.z()));
-        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        lineEdit->setText(QString::number(scene->backgroundBrush().color().blue()));
         connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            bgColor.setZ((float) lineEdit->text().toDouble());
-            emit render(bgColor, shapes);
+            auto c = scene->backgroundBrush().color();
+            c.setBlue(lineEdit->text().toInt());
+            scene->setBackgroundBrush(QBrush(c));
         });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
 
         label = new QLabel("a");
         lineEdit = new QLineEdit();
-        lineEdit->setText(QString::number(color.w()));
-        lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
+        lineEdit->setText(QString::number(scene->backgroundBrush().color().alpha()));
         connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit]() {
-            bgColor.setW((float) lineEdit->text().toDouble());
-            emit render(bgColor, shapes);
+            auto c = scene->backgroundBrush().color();
+            c.setAlpha(lineEdit->text().toInt());
+            scene->setBackgroundBrush(QBrush(c));
         });
         hLayout->addWidget(label);
         hLayout->addWidget(lineEdit);
@@ -94,133 +93,153 @@ Settings::Settings() : QWidget()
     s->setExpanded(true);
 
     int i = 0;
-    for (const auto &shape : shapes) {
+    for (auto &graphicsItem : scene->items()) {
+        auto shape = qgraphicsitem_cast<QAbstractGraphicsShapeItem *>(graphicsItem);
         auto shapeParent = new QTreeWidgetItem(s);
         shapeParent->setText(0, "shape " + QString::number(++i));
         shapeParent->setExpanded(true);
 
+        qDebug() << shape->type();
+        auto type = shape->type();
+        if (type != ItemType::Rect && type != ItemType::Circle) {
+            qWarning("incorrect type");
+            return;
+        }
+
+        auto typeName = type == ItemType::Rect ? QString("Rect") : QString("Circle");
+
         //type
         {
-            auto item = new QTreeWidgetItem(shapeParent);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("type");
-            auto typeLineEdit = new QLineEdit(shape->type);
+            auto typeLineEdit = new QLineEdit(typeName);
             typeLineEdit->setReadOnly(true);
-            /*
-             auto comboBox = new QComboBox;
-             comboBox->addItems(QStringList{ "Rect", "Circle" });
-             comboBox->setCurrentText(shape->type);
-             */
+
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
             hLayout->addWidget(typeLineEdit);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
 
         // color
         {
-            auto color = shape->color;
-            auto item = new QTreeWidgetItem(shapeParent);
-            item->setText(0, "color");
-            item->setExpanded(true);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
+            treeItem->setText(0, "color");
+            treeItem->setExpanded(true);
 
-            item = new QTreeWidgetItem(item);
+            treeItem = new QTreeWidgetItem(treeItem);
 
             auto widget = new QWidget;
             auto hLayout = new QHBoxLayout;
 
-            auto image = QImage(QSize(1, 1), QImage::Format_RGBA8888);
-            image.setPixelColor(QPoint(0, 0),
-                                QColor(255 * color.x(), 255 * color.y(), 255 * color.z(),
-                                       255 * color.w()));
-            auto label = new QLabel;
-            label->setPixmap(
-                    QPixmap::fromImage(image).scaled(QSize(10, 10)));
-            hLayout->addWidget(label);
+            auto image = new QImage(QSize(1, 1), QImage::Format_RGBA8888);
+            image->setPixelColor(QPoint(0, 0), shape->brush().color());
+            auto imageLabel = new QLabel;
+            imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+            hLayout->addWidget(imageLabel);
 
-            label = new QLabel("r");
+            auto label = new QLabel("r");
             auto lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(color.x()));
-            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
-            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
-                shape->color.setX((float) lineEdit->text().toDouble());
-                emit render(bgColor, shapes);
-            });
+            lineEdit->setText(QString::number(shape->brush().color().red()));
+            connect(lineEdit, &QLineEdit::editingFinished, this,
+                    [this, lineEdit, shape, image, imageLabel]() {
+                        auto c = shape->brush().color();
+                        c.setRed(lineEdit->text().toInt());
+                        shape->setBrush(QBrush(c));
+                        shape->setPen(QPen(c));
+                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
+                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+                    });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("g");
             lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(color.y()));
-            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
-            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
-                shape->color.setY((float) lineEdit->text().toDouble());
-                emit render(bgColor, shapes);
-            });
+            lineEdit->setText(QString::number(shape->brush().color().green()));
+            connect(lineEdit, &QLineEdit::editingFinished, this,
+                    [this, lineEdit, shape, image, imageLabel]() {
+                        auto c = shape->brush().color();
+                        c.setGreen(lineEdit->text().toInt());
+                        shape->setBrush(QBrush(c));
+                        shape->setPen(QPen(c));
+                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
+                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+                    });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("b");
             lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(color.z()));
-            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
-            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
-                shape->color.setZ((float) lineEdit->text().toDouble());
-                emit render(bgColor, shapes);
-            });
+            lineEdit->setText(QString::number(shape->brush().color().blue()));
+            connect(lineEdit, &QLineEdit::editingFinished, this,
+                    [this, lineEdit, shape, image, imageLabel]() {
+                        auto c = shape->brush().color();
+                        c.setBlue(lineEdit->text().toInt());
+                        shape->setBrush(QBrush(c));
+                        shape->setPen(QPen(c));
+                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
+                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+                    });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             label = new QLabel("a");
             lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(color.w()));
-            lineEdit->setValidator(new MyDoubleValidator(0, 1, 3, widget));
-            connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, shape]() {
-                shape->color.setW((float) lineEdit->text().toDouble());
-                emit render(bgColor, shapes);
-            });
+            lineEdit->setText(QString::number(shape->brush().color().alpha()));
+            connect(lineEdit, &QLineEdit::editingFinished, this,
+                    [this, lineEdit, shape, image, imageLabel]() {
+                        auto c = shape->brush().color();
+                        c.setAlpha(lineEdit->text().toInt());
+                        shape->setBrush(QBrush(c));
+                        shape->setPen(QPen(c));
+                        image->setPixelColor(QPoint(0, 0), shape->brush().color());
+                        imageLabel->setPixmap(QPixmap::fromImage(*image).scaled(QSize(10, 10)));
+                    });
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
+
             hLayout->setMargin(0);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
 
         // circle radius
-        if (shape->type == "Circle") {
-            auto circle = static_cast<Circle *>(shape);
-            auto item = new QTreeWidgetItem(shapeParent);
+        if (shape->type() == ItemType::Circle) {
+            auto circle = qgraphicsitem_cast<QGraphicsEllipseItem *>(shape);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("radius");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
-            lineEdit->setText(QString::number(circle->radius));
+            lineEdit->setText(QString::number(circle->rect().width()));
             connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, circle]() {
-                circle->radius = (float) lineEdit->text().toDouble();
-                emit render(bgColor, shapes);
+                auto r = circle->rect();
+                r.setWidth(lineEdit->text().toDouble() * 2);
+                r.setHeight(lineEdit->text().toDouble() * 2);
+                circle->setRect(r);
             });
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
 
         //rect width
-        if (shape->type == "Rect") {
-            auto rect = static_cast<Rect *>(shape);
-            auto item = new QTreeWidgetItem(shapeParent);
+        if (shape->type() == ItemType::Rect) {
+            auto rect = qgraphicsitem_cast<QGraphicsRectItem *>(shape);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("width");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
-            lineEdit->setText(QString::number(rect->width));
+            lineEdit->setText(QString::number(rect->rect().width()));
             connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, rect]() {
-                rect->width = (float) lineEdit->text().toDouble();
-                emit render(bgColor, shapes);
+                auto r = rect->rect();
+                r.setWidth(lineEdit->text().toDouble());
+                rect->setRect(r);
             });
 
             auto hLayout = new QHBoxLayout;
@@ -228,59 +247,57 @@ Settings::Settings() : QWidget()
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
 
         // rect height
-        if (shape->type == "Rect") {
-            auto rect = static_cast<Rect *>(shape);
-            auto item = new QTreeWidgetItem(shapeParent);
+        if (shape->type() == ItemType::Rect) {
+            auto rect = qgraphicsitem_cast<QGraphicsRectItem *>(shape);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
             auto widget = new QWidget;
             auto label = new QLabel("height");
             auto lineEdit = new QLineEdit;
-            lineEdit->setValidator(new MyDoubleValidator(0, 1000, 3, widget));
-            lineEdit->setText(QString::number(rect->height));
+            lineEdit->setText(QString::number(rect->rect().height()));
             connect(lineEdit, &QLineEdit::editingFinished, this, [this, lineEdit, rect]() {
-                rect->height = (float) lineEdit->text().toDouble();
-                emit render(bgColor, shapes);
+                auto r = rect->rect();
+                r.setHeight(lineEdit->text().toDouble());
+                rect->setRect(r);
             });
             auto hLayout = new QHBoxLayout;
             hLayout->setMargin(0);
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
 
         // position
         {
-            auto item = new QTreeWidgetItem(shapeParent);
-            item->setText(0, "position");
-            item->setExpanded(true);
+            auto treeItem = new QTreeWidgetItem(shapeParent);
+            treeItem->setText(0, "position");
+            treeItem->setExpanded(true);
 
-            item = new QTreeWidgetItem(item);
+            treeItem = new QTreeWidgetItem(treeItem);
 
             auto widget = new QWidget;
             auto hLayout = new QHBoxLayout;
 
             auto label = new QLabel("x");
             auto lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->position.x()));
-            lineEdit->setValidator(new MyDoubleValidator(-1000, 1000, 3, widget));
+            lineEdit->setText(QString::number(shape->boundingRect().center().x()));
 
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
             label = new QLabel("y");
             lineEdit = new QLineEdit();
-            lineEdit->setText(QString::number(shape->position.y()));
-            lineEdit->setValidator(new MyDoubleValidator(-1000, 1000, 3, widget));
+            lineEdit->setText(QString::number(shape->boundingRect().center().y()));
 
             hLayout->addWidget(label);
             hLayout->addWidget(lineEdit);
 
             hLayout->setMargin(0);
             widget->setLayout(hLayout);
-            tree->setItemWidget(item, 0, widget);
+            tree->setItemWidget(treeItem, 0, widget);
         }
     }
 
@@ -289,14 +306,14 @@ Settings::Settings() : QWidget()
     setLayout(layout);
 }
 
-QVector4D Settings::arrayToQColor(const QJsonArray &jsonArray)
+QColor Settings::arrayToQColor(const QJsonArray &jsonArray)
 {
-    return {
-            (float) jsonArray[0].toDouble(),
-            (float) jsonArray[1].toDouble(),
-            (float) jsonArray[2].toDouble(),
-            (float) jsonArray[3].toDouble()
-    };
+    auto color = QColor();
+    color.setRgbF(jsonArray[0].toDouble(),
+                  jsonArray[1].toDouble(),
+                  jsonArray[2].toDouble(),
+                  jsonArray[3].toDouble());
+    return color;
 }
 
 void Settings::load()
@@ -310,7 +327,7 @@ void Settings::load()
 
     auto json = loadDoc.object();
 
-    bgColor = arrayToQColor(json["bg_color"].toArray());
+    scene->setBackgroundBrush(QBrush(arrayToQColor(json["bg_color"].toArray())));
 
     auto shapesArray = json["shapes"].toArray();
 
@@ -319,26 +336,23 @@ void Settings::load()
         auto type = shapeObject["type"].toString();
 
         if (type == "Circle") {
-            auto circle = new Circle;
-            circle->type = type;
-            circle->color = arrayToQColor(shapeObject["color"].toArray());
-            circle->radius = (float) shapeObject["radius"].toDouble();
-            circle->position = QVector2D((float) shapeObject["position"].toArray()[0].toDouble(),
-                                         (float) shapeObject["position"].toArray()[1].toDouble());
-            shapes.push_back(circle);
+            auto color = arrayToQColor(shapeObject["color"].toArray());
+            auto radius = (float) shapeObject["radius"].toDouble();
+            auto width = 2 * radius;
+            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
+            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
+            scene->addEllipse(x - width / 2, y - width / 2, width, width, QPen(color),
+                              QBrush(color));
         } else if (type == "Rect") {
-            auto rect = new Rect;
-            rect->type = type;
-            rect->color = arrayToQColor(shapeObject["color"].toArray());
-            rect->width = (float) shapeObject["width"].toDouble();
-            rect->height = (float) shapeObject["height"].toDouble();
-            rect->position = QVector2D((float) shapeObject["position"].toArray()[0].toDouble(),
-                                       (float) shapeObject["position"].toArray()[1].toDouble());
-            shapes.push_back(rect);
+            auto color = arrayToQColor(shapeObject["color"].toArray());
+            auto width = (float) shapeObject["width"].toDouble();
+            auto height = (float) shapeObject["height"].toDouble();
+            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
+            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
+            scene->addRect(x - width / 2, y - height / 2, width, height, QPen(color),
+                           QBrush(color));
         };
     }
-
-    emit render(bgColor, shapes);
 }
 
 

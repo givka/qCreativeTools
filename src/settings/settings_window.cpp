@@ -1,18 +1,17 @@
 #include <QHBoxLayout>
+#include <QGraphicsView>
 #include <QGroupBox>
 #include "settings_window.h"
-#include "draw_area.h"
 #include "settings.h"
 
 SettingsWindow::SettingsWindow() :
-        QMainWindow(),
-        drawArea(new DrawArea), settings(new Settings)
+        QMainWindow(), settings(new Settings)
 {
     auto layout = new QHBoxLayout();
 
     auto groupBox = new QGroupBox("Draw Area");
     auto hLayout = new QHBoxLayout;
-    hLayout->addWidget(drawArea);
+    hLayout->addWidget(new QGraphicsView(settings->getScene()));
     groupBox->setLayout(hLayout);
 
     layout->addWidget(groupBox);
@@ -26,8 +25,6 @@ SettingsWindow::SettingsWindow() :
 
     layout->setStretch(0, 3);
     layout->setStretch(1, 1);
-
-    connect(settings, &Settings::render, drawArea, &DrawArea::drawShapes);
 
     auto window = new QWidget;
     window->setLayout(layout);
