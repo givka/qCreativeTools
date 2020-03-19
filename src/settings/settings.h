@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QTreeWidget>
 
 class Settings : public QWidget
 {
@@ -18,7 +19,7 @@ public :
 
 private:
 
-    enum ItemType
+    enum ShapeType
     {
         Rect = 3,
         Circle = 4
@@ -30,7 +31,11 @@ private:
 
     QGraphicsScene *scene;
 
-    void addColorColumn(QHBoxLayout *hLayout, const QString &name, double value, QLabel *imageLabel,
-                        QImage *image, const std::function<void(double)> &function);
+    void addColorColumn(QHBoxLayout *hLayout, const QString &name, double value,
+                        const std::function<void(double)> &function);
+
+    void createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem);
+
+    QTreeWidget *tree;
 };
 
