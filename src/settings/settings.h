@@ -25,7 +25,9 @@ private:
         Circle = 4
     };
 
-    void load();
+    void loadJson();
+
+    void saveJson();
 
     static QColor arrayToQColor(const QJsonArray &jsonArray);
 

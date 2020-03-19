@@ -19,7 +19,7 @@
 Settings::Settings() : QWidget(),
                        tree(new QTreeWidget), scene(new QGraphicsScene)
 {
-    load();
+    loadJson();
 
     /*
     auto shapeTypes = QMap<QString, ShapeType>();
@@ -108,10 +108,12 @@ Settings::Settings() : QWidget(),
         connect(button, &QAbstractButton::clicked, this, [this, comboBox, s]() {
             auto type = comboBox->currentText();
             if (type == "Rect") {
-                auto graphicsItem = scene->addRect(QRectF(), QPen(QColor()), QBrush(QColor()));
+                auto graphicsItem = scene->addRect(QRectF(), QPen(QColor(0, 0, 0)),
+                                                   QBrush(QColor(0, 0, 0)));
                 createShapeRow(s, graphicsItem);
             } else if (type == "Circle") {
-                auto graphicsItem = scene->addEllipse(QRectF(), QPen(QColor()), QBrush(QColor()));
+                auto graphicsItem = scene->addEllipse(QRectF(), QPen(QColor(0, 0, 0)),
+                                                      QBrush(QColor(0, 0, 0)));
                 createShapeRow(s, graphicsItem);
             }
         });
@@ -121,8 +123,12 @@ Settings::Settings() : QWidget(),
         tree->setItemWidget(newShape, 0, widget);
     }
 
-    auto layout = new QHBoxLayout;
+    auto button = new QPushButton("Save");
+    connect(button, &QPushButton::clicked, this, [this]() { saveJson(); });
+
+    auto layout = new QVBoxLayout;
     layout->addWidget(tree);
+    layout->addWidget(button);
     setLayout(layout);
 }
 
@@ -134,45 +140,6 @@ QColor Settings::arrayToQColor(const QJsonArray &jsonArray)
                   jsonArray[2].toDouble(),
                   jsonArray[3].toDouble());
     return color;
-}
-
-void Settings::load()
-{
-    QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
-
-    if (!loadFile.open(QIODevice::ReadOnly))
-        qWarning("ReadOnly Couldn't open settings file.");
-
-    QJsonDocument loadDoc = QJsonDocument::fromJson(loadFile.readAll());
-
-    auto json = loadDoc.object();
-
-    scene->setBackgroundBrush(QBrush(arrayToQColor(json["bg_color"].toArray())));
-
-    auto shapesArray = json["shapes"].toArray();
-
-    for (const auto &shape : shapesArray) {
-        auto shapeObject = shape.toObject();
-        auto type = shapeObject["type"].toString();
-
-        if (type == "Circle") {
-            auto color = arrayToQColor(shapeObject["color"].toArray());
-            auto radius = (float) shapeObject["radius"].toDouble();
-            auto width = 2 * radius;
-            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
-            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
-            scene->addEllipse(x - width / 2, y - width / 2, width, width, QPen(color),
-                              QBrush(color));
-        } else if (type == "Rect") {
-            auto color = arrayToQColor(shapeObject["color"].toArray());
-            auto width = (float) shapeObject["width"].toDouble();
-            auto height = (float) shapeObject["height"].toDouble();
-            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
-            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
-            scene->addRect(x - width / 2, y - height / 2, width, height, QPen(color),
-                           QBrush(color));
-        }
-    }
 }
 
 void Settings::addColorColumn(QHBoxLayout *hLayout, const QString &name, double value,
@@ -392,4 +359,131 @@ void Settings::createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem)
     }
 }
 
+void Settings::loadJson()
+{
+    QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
 
+    if (!loadFile.open(QIODevice::ReadOnly))
+        qWarning("ReadOnly Couldn't open settings file.");
+
+    QJsonDocument loadDoc = QJsonDocument::fromJson(loadFile.readAll());
+
+    auto json = loadDoc.object();
+
+    scene->setBackgroundBrush(QBrush(arrayToQColor(json["bg_color"].toArray())));
+
+    auto shapesArray = json["shapes"].toArray();
+
+    for (const auto &shape : shapesArray) {
+        auto shapeObject = shape.toObject();
+        auto type = shapeObject["type"].toString();
+
+        if (type == "Circle") {
+            auto color = arrayToQColor(shapeObject["color"].toArray());
+            auto radius = (float) shapeObject["radius"].toDouble();
+            auto width = 2 * radius;
+            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
+            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
+            scene->addEllipse(x - width / 2, y - width / 2, width, width, QPen(color),
+                              QBrush(color));
+        } else if (type == "Rect") {
+            auto color = arrayToQColor(shapeObject["color"].toArray());
+            auto width = (float) shapeObject["width"].toDouble();
+            auto height = (float) shapeObject["height"].toDouble();
+            auto x = (float) shapeObject["position"].toArray()[0].toDouble();
+            auto y = (float) shapeObject["position"].toArray()[1].toDouble();
+            scene->addRect(x - width / 2, y - height / 2, width, height, QPen(color),
+                           QBrush(color));
+        }
+    }
+}
+
+void Settings::saveJson()
+{
+    QFile saveFile("/Users/artich/dev/qCreativeTools/resources/settings-save.json");
+
+    if (!saveFile.open(QIODevice::WriteOnly))
+        qWarning("WriteOnly Couldn't open settings file.");
+
+    auto object = QJsonObject();
+
+    object["bg_color"] = QJsonArray{ scene->backgroundBrush().color().redF(),
+                                     scene->backgroundBrush().color().greenF(),
+                                     scene->backgroundBrush().color().blueF(),
+                                     scene->backgroundBrush().color().alphaF() };
+
+    auto shapes = QJsonArray();
+
+    for (const auto &item : scene->items()) {
+        auto obj = QJsonObject();
+        auto shape = qgraphicsitem_cast<QAbstractGraphicsShapeItem *>(item);
+        obj["color"] = QJsonArray{ shape->brush().color().redF(),
+                                   shape->brush().color().greenF(),
+                                   shape->brush().color().blueF(),
+                                   shape->brush().color().alphaF() };
+
+        if (shape->type() == ShapeType::Rect) {
+            auto rect = qgraphicsitem_cast<QGraphicsRectItem *>(item);
+            obj["type"] = "Rect";
+            obj["width"] = rect->rect().width();
+            obj["height"] = rect->rect().height();
+            obj["position"] = QJsonArray{ rect->rect().center().x(),
+                                          rect->rect().center().y() };
+        } else if (shape->type() == ShapeType::Circle) {
+            auto circle = qgraphicsitem_cast<QGraphicsEllipseItem *>(item);
+            obj["type"] = "Circle";
+            obj["radius"] = circle->rect().width() / 2;
+            obj["position"] = QJsonArray{ circle->rect().center().x(),
+                                          circle->rect().center().y() };
+        }
+
+        shapes.append(obj);
+    }
+
+    object["shapes"] = shapes;
+
+    saveFile.write(QJsonDocument(object).toJson());
+}
+
+
+/*
+ * {
+  "bg_color": [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "shapes": [
+    {
+      "type": "Circle",
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "radius": 1.0,
+      "position": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "type": "Rect",
+      "color": [
+        1.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "width": 1.0,
+      "height": 2.0,
+      "position": [
+        0.5,
+        0.5
+      ]
+    }
+  ]
+}
+ */
