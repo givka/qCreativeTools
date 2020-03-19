@@ -7,8 +7,8 @@
 #include <QFileSystemModel>
 #include <QListView>
 #include <QDebug>
-#include "../icon_provider.h"
-#include "../list_view.h"
+#include "icon_provider.h"
+#include "list_view.h"
 
 class VisualPreview : public QWidget
 {

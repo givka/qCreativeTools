@@ -2,7 +2,7 @@
 
 #include <QApplication>
 #include <QPushButton>
-#include "src/main_window.h"
+#include "src/media/media_window.h"
 #include "src/settings/settings_window.h"
 
 int main(int argc, char **argv)
@@ -59,15 +59,15 @@ int main(int argc, char **argv)
     QApplication::setWindowIcon(QIcon("C:/dev/qCreativeTools/resources/icon.png"));
 #endif
 
-/*
-    MainWindow mainWindow;
-    mainWindow.setWindowTitle("qCreativeTools");
-    mainWindow.showMaximized();
+    MediaWindow mediaWindow;
+    mediaWindow.setWindowTitle("qCreativeTools");
+    mediaWindow.showMaximized();
 
- */
+    /*
     SettingsWindow settingsWindow;
     settingsWindow.setWindowTitle("qCreativeTools");
     settingsWindow.showMaximized();
+    */
 
     return QApplication::exec();
 }

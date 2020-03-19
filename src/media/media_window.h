@@ -5,13 +5,13 @@
 #include "tree_view.h"
 #include "list_view.h"
 
-class MainWindow : public QMainWindow
+class MediaWindow : public QMainWindow
 {
 Q_OBJECT
 
 public:
 
-    MainWindow();
+    MediaWindow();
 
     void resizeEvent(QResizeEvent *event) override;
 

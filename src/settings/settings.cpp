@@ -378,7 +378,7 @@ void Settings::createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem)
 
 void Settings::loadJson()
 {
-    QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings-save.json");
+    QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
 
     if (!loadFile.open(QIODevice::ReadOnly))
         qWarning("ReadOnly Couldn't open settings file.");
@@ -417,7 +417,7 @@ void Settings::loadJson()
 
 void Settings::saveJson()
 {
-    QFile saveFile("/Users/artich/dev/qCreativeTools/resources/settings-save.json");
+    QFile saveFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
 
     if (!saveFile.open(QIODevice::WriteOnly))
         qWarning("WriteOnly Couldn't open settings file.");
