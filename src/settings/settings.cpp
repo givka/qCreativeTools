@@ -208,7 +208,20 @@ void Settings::createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem)
     auto typeName = type == ShapeType::Rect ? QString("Rect") : QString("Circle");
 
     auto shapeParent = new QTreeWidgetItem(s);
-    shapeParent->setText(0, QString("%1: %2").arg(QString::number(id++), typeName));
+    auto w = new QWidget;
+    auto l = new QHBoxLayout;
+
+    auto ql = new QLabel(QString("%1: %2").arg(QString::number(id++), typeName));
+    auto b = new QPushButton("Delete");
+    l->addWidget(ql);
+    l->addWidget(b);
+    w->setLayout(l);
+    tree->setItemWidget(shapeParent, 0, w);
+    connect(b, &QPushButton::clicked, this, [this, shapeParent, s, graphicsItem]() {
+        s->removeChild(shapeParent);
+        scene->removeItem(graphicsItem);
+    });
+
 
     //type
     {
