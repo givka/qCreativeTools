@@ -34,7 +34,7 @@ private:
     QGraphicsScene *scene;
 
     void addColorColumn(QHBoxLayout *hLayout, const QString &name, double value,
-                        const std::function<void(double)> &function);
+                        double min, double max, const std::function<void(double)> &function);
 
     void createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem);
 

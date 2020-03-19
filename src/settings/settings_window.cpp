@@ -1,5 +1,6 @@
 #include <QHBoxLayout>
 #include <QGraphicsView>
+#include <QDebug>
 #include <QGroupBox>
 #include "settings_window.h"
 #include "settings.h"
@@ -7,11 +8,17 @@
 SettingsWindow::SettingsWindow() :
         QMainWindow(), settings(new Settings)
 {
+    auto scene = settings->getScene();
+    auto view = new QGraphicsView(scene);
+
+    view->setSceneRect(view->rect());
+    view->setRenderHint(QPainter::Antialiasing, true);
+
     auto layout = new QHBoxLayout();
 
     auto groupBox = new QGroupBox("Draw Area");
     auto hLayout = new QHBoxLayout;
-    hLayout->addWidget(new QGraphicsView(settings->getScene()));
+    hLayout->addWidget(view);
     groupBox->setLayout(hLayout);
 
     layout->addWidget(groupBox);
