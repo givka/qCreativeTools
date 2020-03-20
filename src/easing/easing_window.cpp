@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <QPushButton>
 
 #include "easing_window.h"
 #include "../utility.h"
@@ -10,6 +11,9 @@ EasingWindow::EasingWindow()
           amplitude(new QDoubleSpinBox), overshoot(new QDoubleSpinBox), period(new QDoubleSpinBox),
           amplitudeWidget(new QWidget), overshootWidget(new QWidget), periodWidget(new QWidget)
 {
+    auto scene = new AnimatedLabel;
+    animation = new QPropertyAnimation(scene, "color");
+
     initList();
     settings = new QWidget;
     initSettings();
@@ -18,15 +22,20 @@ EasingWindow::EasingWindow()
     drawPreview();
     updateSettings();
 
-    auto scene = new AnimatedLabel;
     scene->setAlignment(Qt::AlignCenter);
     auto image = QImage(1, 1, QImage::Format_RGBA8888);
     image.fill(QColor(255, 0, 0, 255));
     scene->setPixmap(QPixmap::fromImage(image).scaled(200, 200));
 
     auto slider = new QSlider(Qt::Horizontal);
+    auto play = new QPushButton(QIcon(style()->standardIcon(QStyle::SP_MediaPlay)), "");
+    connect(play, &QPushButton::clicked, this, [this, play]() {
+        isPlayed = !isPlayed;
+        animation->setPaused(!isPlayed);
+        play->setIcon(QIcon(style()->standardIcon(
+                isPlayed ? QStyle::SP_MediaPlay : QStyle::SP_MediaPause)));
+    });
 
-    animation = new QPropertyAnimation(scene, "color");
     animation->setStartValue(QColor(0, 0, 0, 255));
     animation->setEndValue(QColor(255, 255, 255, 255));
     animation->setDuration(2000);
@@ -38,16 +47,26 @@ EasingWindow::EasingWindow()
     timer->start();
 
     connect(timer, &QTimer::timeout, this, [this, slider]() {
+        if (animation->state() == QAbstractAnimation::State::Paused) return;
         auto ratio = (float) animation->currentLoopTime() / (float) animation->duration();
         slider->setValue((int) (100 * ratio));
+        drawPreview();
+    });
+
+    connect(slider, &QSlider::valueChanged, this, [this](int value) {
+        if (animation->state() == QAbstractAnimation::State::Running) return;
+        auto ratio = (float) value / 100;
+        animation->setCurrentTime((int) (ratio * (float) animation->duration()));
+        drawPreview();
     });
 
     previewImage->setAlignment(Qt::AlignCenter);
 
-    connect(list, &QListWidget::currentRowChanged, this, [this](int row) {
+    connect(list, &QListWidget::currentRowChanged, this, [this, slider](int row) {
         currentCurve = createCurve(static_cast<QEasingCurve::Type>(row));
         animation->setEasingCurve(currentCurve);
         animation->setCurrentTime(0);
+        slider->setValue(0);
         drawPreview();
         updateSettings();
     });
@@ -71,7 +90,7 @@ EasingWindow::EasingWindow()
             });
 
     auto sceneGb = Utility::createGroupBox("Scene", new QVBoxLayout,
-                                           QList<QWidget *>{ scene, slider });
+                                           QList<QWidget *>{ scene, slider, play });
     auto previewGb = Utility::createGroupBox("Preview", new QVBoxLayout,
                                              QList<QWidget *>{ previewImage });
     auto settingsGb = Utility::createGroupBox("Settings", new QHBoxLayout,
@@ -114,7 +133,15 @@ QPixmap EasingWindow::createEasingPixmap(const QEasingCurve &curve, int size)
                          (x + 1) / 2 + size / 4, y2 / 2 + size / 4);
     }
 
-    painter.setPen(QPen(QBrush(QColor(255, 128, 128, 255)), 1, Qt::DotLine));
+    painter.setBrush(QBrush(QColor(255, 128, 128, 255)));
+
+    if (animation->state() != QAbstractAnimation::State::Stopped) {
+        auto ratio = (float) animation->currentLoopTime() / animation->duration();
+        int y1 = (int) ((float) size * curve.valueForProgress(ratio));
+        painter.drawEllipse(ratio * size / 2 + size / 4 - 5, y1 / 2 + size / 4 - 5, 10, 10);
+    }
+
+    painter.setPen(QPen(painter.brush(), 1, Qt::DotLine));
     painter.drawLine(size / 4, 0, size / 4, size);
     painter.drawLine(0, 3 * size / 4, size, 3 * size / 4);
 

@@ -19,7 +19,7 @@ public:
 
 private:
 
-    static QPixmap createEasingPixmap(const QEasingCurve &curve, int size);
+     QPixmap createEasingPixmap(const QEasingCurve &curve, int size);
 
     void initList();
 
@@ -27,7 +27,7 @@ private:
 
     void drawPreview();
 
-    static constexpr int Size = 100;
+    static constexpr int Size = 64;
     QWidget *settings;
     QListWidget *list;
     QLabel *previewImage;
@@ -40,6 +40,7 @@ private:
     QWidget *overshootWidget;
     QWidget *periodWidget;
     QPropertyAnimation *animation;
+    bool isPlayed = true;
 
     void updateSettings();
 
