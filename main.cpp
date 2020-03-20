@@ -29,6 +29,9 @@ int main(int argc, char **argv)
     darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
     darkPalette.setColor(QPalette::HighlightedText, Qt::black);
 
+    darkPalette.setColor(QPalette::Disabled, QPalette::Text, Qt::darkGray);
+    darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::darkGray);
+
     QApplication::setPalette(darkPalette);
 
     app.setStyleSheet(
@@ -51,6 +54,10 @@ int main(int argc, char **argv)
 
     palette.setColor(QPalette::Highlight, QColor(142,45,197).lighter());
     palette.setColor(QPalette::HighlightedText, Qt::black);
+
+    palette.setColor(QPalette::Disabled, QPalette::Text, Qt::darkGray);
+    palette.setColor(QPalette::Disabled, QPalette::ButtonText, Qt::darkGray);
+
     QApplication::setPalette(palette);
 #endif
 
