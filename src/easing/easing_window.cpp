@@ -14,31 +14,64 @@ EasingWindow::EasingWindow()
     settings = new QWidget;
     initSettings();
 
+    list->setCurrentRow(0);
+    drawPreview();
+    updateSettings();
+
+    auto scene = new AnimatedLabel;
+    scene->setAlignment(Qt::AlignCenter);
+    auto image = QImage(1, 1, QImage::Format_RGBA8888);
+    image.fill(QColor(255, 0, 0, 255));
+    scene->setPixmap(QPixmap::fromImage(image).scaled(200, 200));
+
+    auto slider = new QSlider(Qt::Horizontal);
+
+    animation = new QPropertyAnimation(scene, "color");
+    animation->setStartValue(QColor(0, 0, 0, 255));
+    animation->setEndValue(QColor(255, 255, 255, 255));
+    animation->setDuration(2000);
+    animation->setLoopCount(-1); // forever
+    animation->start();
+
+    auto timer = new QTimer(this);
+    timer->setInterval(1);
+    timer->start();
+
+    connect(timer, &QTimer::timeout, this, [this, slider]() {
+        auto ratio = (float) animation->currentLoopTime() / (float) animation->duration();
+        slider->setValue((int) (100 * ratio));
+    });
+
     previewImage->setAlignment(Qt::AlignCenter);
 
     connect(list, &QListWidget::currentRowChanged, this, [this](int row) {
-        currentCurve = QEasingCurve(static_cast<QEasingCurve::Type>(row));
+        currentCurve = createCurve(static_cast<QEasingCurve::Type>(row));
+        animation->setEasingCurve(currentCurve);
+        animation->setCurrentTime(0);
         drawPreview();
         updateSettings();
     });
     connect(amplitude, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
             [this](double value) {
                 currentCurve.setAmplitude(value);
+                animation->setEasingCurve(currentCurve);
                 drawPreview();
             });
     connect(overshoot, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
             [this](double value) {
                 currentCurve.setOvershoot(value);
+                animation->setEasingCurve(currentCurve);
                 drawPreview();
             });
     connect(period, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
             [this](double value) {
                 currentCurve.setPeriod(value);
+                animation->setEasingCurve(currentCurve);
                 drawPreview();
             });
 
-    auto sceneGb = Utility::createGroupBox("Scene", new QHBoxLayout,
-                                           QList<QWidget *>{ new QLabel });
+    auto sceneGb = Utility::createGroupBox("Scene", new QVBoxLayout,
+                                           QList<QWidget *>{ scene, slider });
     auto previewGb = Utility::createGroupBox("Preview", new QVBoxLayout,
                                              QList<QWidget *>{ previewImage });
     auto settingsGb = Utility::createGroupBox("Settings", new QHBoxLayout,
@@ -72,15 +105,6 @@ QPixmap EasingWindow::createEasingPixmap(const QEasingCurve &curve, int size)
     painter.setPen(QPen(QColor(255, 255, 255, 255)));
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::TextAntialiasing, true);
-
-    if (curve.type() == QEasingCurve::Type::BezierSpline ||
-        curve.type() == QEasingCurve::Type::TCBSpline) {
-        auto fontMetrics = QFontMetrics(painter.font());
-        auto name = QString(QVariant::fromValue(curve.type()).toString());
-        painter.drawText(size / 2 - fontMetrics.width(name) / 2,
-                         size / 2, name);
-        return QPixmap::fromImage(image);
-    }
 
     for (int x = 0; x < size; ++x) {
         int y1 = (int) ((float) size * curve.valueForProgress((float) x / (float) size));
@@ -117,7 +141,7 @@ void EasingWindow::initList()
         auto name = QString(QVariant::fromValue(type).toString());
         auto item = new QListWidgetItem;
         item->setText(name);
-        item->setIcon(EasingWindow::createEasingPixmap(QEasingCurve(type), EasingWindow::Size));
+        item->setIcon(EasingWindow::createEasingPixmap(createCurve(type), EasingWindow::Size));
         list->addItem(item);
     }
 }
@@ -130,8 +154,8 @@ void EasingWindow::initSettings()
         auto layout = new QHBoxLayout;
         layout->addWidget(new QLabel("type"));
         layout->addWidget(typeLineEdit);
-        layout->setStretch(0,1);
-        layout->setStretch(1,1);
+        layout->setStretch(0, 1);
+        layout->setStretch(1, 1);
         widget->setLayout(layout);
         vLayout->addWidget(widget);
     }
@@ -139,8 +163,8 @@ void EasingWindow::initSettings()
         auto layout = new QHBoxLayout;
         layout->addWidget(new QLabel("amplitude"));
         layout->addWidget(amplitude);
-        layout->setStretch(0,1);
-        layout->setStretch(1,1);
+        layout->setStretch(0, 1);
+        layout->setStretch(1, 1);
         amplitude->setSingleStep(0.1);
         amplitudeWidget->setLayout(layout);
         vLayout->addWidget(amplitudeWidget);
@@ -149,8 +173,8 @@ void EasingWindow::initSettings()
         auto layout = new QHBoxLayout;
         layout->addWidget(new QLabel("overshoot"));
         layout->addWidget(overshoot);
-        layout->setStretch(0,1);
-        layout->setStretch(1,1);
+        layout->setStretch(0, 1);
+        layout->setStretch(1, 1);
         overshoot->setSingleStep(0.1);
         overshootWidget->setLayout(layout);
         vLayout->addWidget(overshootWidget);
@@ -159,8 +183,8 @@ void EasingWindow::initSettings()
         auto layout = new QHBoxLayout;
         layout->addWidget(new QLabel("period"));
         layout->addWidget(period);
-        layout->setStretch(0,1);
-        layout->setStretch(1,1);
+        layout->setStretch(0, 1);
+        layout->setStretch(1, 1);
         period->setSingleStep(0.1);
         periodWidget->setLayout(layout);
         vLayout->addWidget(periodWidget);
@@ -206,4 +230,18 @@ void EasingWindow::updateSettings()
     amplitude->setValue(currentCurve.amplitude());
     overshoot->setValue(currentCurve.overshoot());
     period->setValue(currentCurve.period());
+}
+
+QEasingCurve EasingWindow::createCurve(QEasingCurve::Type type)
+{
+    auto curve = QEasingCurve(type);
+    if (curve.type() == QEasingCurve::BezierSpline) {
+        curve.addCubicBezierSegment(QPointF(0.4, 0.1), QPointF(0.6, 0.9), QPointF(1.0, 1.0));
+    } else if (curve.type() == QEasingCurve::TCBSpline) {
+        curve.addTCBSegment(QPointF(0.0, 0.0), 0, 0, 0);
+        curve.addTCBSegment(QPointF(0.3, 0.4), 0.2, 1, -0.2);
+        curve.addTCBSegment(QPointF(0.7, 0.6), -0.2, 1, 0.2);
+        curve.addTCBSegment(QPointF(1.0, 1.0), 0, 0, 0);
+    }
+    return curve;
 }
