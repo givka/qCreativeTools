@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "../utility.h"
 
 #include <QFile>
 #include <QJsonDocument>
@@ -378,7 +379,7 @@ void Settings::createShapeRow(QTreeWidgetItem *s, QGraphicsItem *graphicsItem)
 
 void Settings::loadJson()
 {
-    QFile loadFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
+    QFile loadFile(Utility::path + "/resources/settings.json");
 
     if (!loadFile.open(QIODevice::ReadOnly))
         qWarning("ReadOnly Couldn't open settings file.");
@@ -417,7 +418,7 @@ void Settings::loadJson()
 
 void Settings::saveJson()
 {
-    QFile saveFile("/Users/artich/dev/qCreativeTools/resources/settings.json");
+    QFile saveFile(Utility::path + "/resources/settings.json");
 
     if (!saveFile.open(QIODevice::WriteOnly))
         qWarning("WriteOnly Couldn't open settings file.");

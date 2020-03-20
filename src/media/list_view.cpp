@@ -2,6 +2,7 @@
 #include "icon_provider.h"
 #include "styled_item_delegate.h"
 #include "icon_proxy.h"
+#include "../utility.h"
 
 ListView::ListView()
         : QListView(),
@@ -11,11 +12,7 @@ ListView::ListView()
 {
     model->setFilter(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot);
 
-#if __APPLE__
-    model->setRootPath("/Users/artich/dev/qCreativeTools/resources/");
-#elif _WIN32
-    model->setRootPath("C:/dev/qCreativeTools/resources/");
-#endif
+    model->setRootPath(Utility::path + "/resources/");
 
     model->setIconProvider(new IconProvider);
     model->setNameFilterDisables(false);

@@ -8,6 +8,7 @@ class Utility
 public:
     static QGroupBox *createGroupBox(const QString &name, QLayout *layout,
                               const QList<QWidget *> &widgets);
+    static const QString path;
 };
 
 

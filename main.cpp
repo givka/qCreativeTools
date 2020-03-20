@@ -5,6 +5,9 @@
 #include "src/media/media_window.h"
 #include "src/settings/settings_window.h"
 #include "src/easing/easing_window.h"
+#include "src/utility.h"
+
+const QString Utility::path = QString("/Users/artich/dev/QCreativeTools");
 
 int main(int argc, char **argv)
 {
@@ -61,24 +64,14 @@ int main(int argc, char **argv)
     QApplication::setPalette(palette);
 #endif
 
-#if __APPLE__
-    QApplication::setWindowIcon(QIcon("/Users/dev/qCreativeTools/resources/icon.png"));
-#elif _WIN32
-    QApplication::setWindowIcon(QIcon("C:/dev/qCreativeTools/resources/icon.png"));
-#endif
-    /*
-    MediaWindow mediaWindow;
-    mediaWindow.setWindowTitle("qCreativeTools");
-    mediaWindow.showMaximized();
-    */
-    /*
-    SettingsWindow settingsWindow;
-    settingsWindow.setWindowTitle("qCreativeTools");
-    settingsWindow.showMaximized();
-    */
-    EasingWindow easingWindow;
-    easingWindow.setWindowTitle("qCreativeTools");
-    easingWindow.showMaximized();
+    QApplication::setWindowIcon(QIcon(Utility::path + "/resources/icon.png"));
+
+    auto window = new MediaWindow();
+    // auto window = new SettingsWindow();
+    // auto window = new EasingWindow();
+
+    window->setWindowTitle("qCreativeTools");
+    window->showMaximized();
 
     return QApplication::exec();
 }
