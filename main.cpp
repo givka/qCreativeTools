@@ -7,7 +7,7 @@
 #include "src/easing/easing_window.h"
 #include "src/utility.h"
 
-const QString Utility::path = QString("/Users/artich/dev/QCreativeTools");
+const QString Utility::path = QString("/Users/artich/dev/qCreativeTools");
 
 int main(int argc, char **argv)
 {
